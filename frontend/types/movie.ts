@@ -1,10 +1,28 @@
-// frontend/types/movie.ts
+// frontend/types/movie.ts (Cập nhật)
 
+// Định nghĩa cơ bản cho Phim (đã có)
 export type Movie = {
   id: number;
   title: string;
-  posterUrl: string; // Đường dẫn đến ảnh poster
+  posterUrl: string;
   genre: string[];
-  duration: number; // phút
-  rating: number; // Điểm đánh giá
+  duration: number;
+  rating: number;
+};
+
+// Định nghĩa cho một Suất chiếu
+export type Showtime = {
+  id: string;
+  time: string; // Ví dụ: "10:30"
+  theater: string; // Ví dụ: "Phòng 1"
+  price: number;
+};
+
+// Định nghĩa cho Chi tiết Phim (bao gồm lịch chiếu)
+export type MovieDetail = Movie & {
+  description: string; // Tóm tắt nội dung
+  releaseDate: string;
+  director: string;
+  actors: string;
+  showtimes: Showtime[]; // Lịch chiếu
 };

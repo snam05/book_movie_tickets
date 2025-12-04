@@ -26,3 +26,11 @@ export type MovieDetail = Movie & {
   actors: string;
   showtimes: Showtime[]; // Lịch chiếu
 };
+
+export type Seat = {
+  id: string; // Ví dụ: "A1", "VIP-C5"
+  row: string;
+  number: number;
+  status: 'available' | 'booked' | 'vip' | 'selected';
+  price: number;
+};

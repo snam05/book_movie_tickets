@@ -84,7 +84,7 @@ export function Footer() {
 
         {/* Phần Bản quyền (Copyright) */}
         <div className="text-center text-sm text-gray-400">
-          © {currentYear} Movie Ticket App. All Rights Reserved.
+          © {currentYear} BetaCinema. All Rights Reserved.
         </div>
       </div>
     </footer>

@@ -1,0 +1,22 @@
+// backend/tsconfig.json
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es2021",
+        "esModuleInterop": true,
+        "strict": true,
+        "skipLibCheck": true, // <-- Rất quan trọng để bỏ qua lỗi thư viện
+        "forceConsistentCasingInFileNames": true,
+        "outDir": "./dist",
+        "rootDir": "./",
+        "resolveJsonModule": true
+    },
+    "include": [
+        "**/*.ts"
+    ],
+    // DÒNG NÀY SẼ NGĂN LỖI LẶP LẠI
+    "exclude": [
+        "node_modules", 
+        "dist"
+    ]
+}

@@ -1,5 +1,3 @@
-// frontend/components/common/Header.tsx
-
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,12 +12,14 @@ const NAV_LINKS = [
 ];
 
 export function Header() {
+    // TODO: Sau này, cần thêm logic kiểm tra trạng thái đăng nhập ở đây
+    const isLoggedIn = false; // Tạm thời là false
+
     return (
         <header className="bg-white shadow-md sticky top-0 z-50">
             {/* 1. Thanh Top Bar: Logo, Tìm kiếm, User */}
-            {/* ĐIỀU CHỈNH: Bọc nội dung bằng div với "container mx-auto" và thêm padding ngang "px-4" */}
             <div className="container mx-auto px-4"> 
-                <div className="flex items-center justify-between py-4"> {/* Dùng py-4 thay vì p-4 để chỉ điều chỉnh padding dọc */}
+                <div className="flex items-center justify-between py-4">
                     
                     {/* Logo/Trang chủ */}
                     <Link href="/" className="text-2xl font-bold text-red-600 hover:text-red-700">
@@ -39,10 +39,15 @@ export function Header() {
 
                     {/* User/Đăng nhập (Phải) */}
                     <div className="flex items-center space-x-4">
-                        <Button variant="ghost" className="text-sm">
-                            <User className="mr-2 h-4 w-4" /> 
-                            Đăng nhập / Đăng ký
-                        </Button>
+                        {/* THAY ĐỔI: Sử dụng Link để điều hướng đến /login */}
+                        <Link href="/auth/login" passHref legacyBehavior> 
+                            <Button variant="ghost" className="text-sm">
+                                <User className="mr-2 h-4 w-4" /> 
+                                {isLoggedIn ? 'Tên Người Dùng' : 'Đăng nhập / Đăng ký'}
+                            </Button>
+                        </Link>
+                        {/* END THAY ĐỔI */}
+                        
                         <Button variant="outline" size="sm">
                             VI
                         </Button>
@@ -53,12 +58,11 @@ export function Header() {
             <Separator />
 
             {/* 2. Thanh Điều hướng Chính (Menu) */}
-            {/* ĐIỀU CHỈNH: Thêm padding ngang "px-4" */}
             <nav className="container mx-auto px-4 py-2">
                 <ul className="flex space-x-8">
                     {NAV_LINKS.map((link) => (
                         <li key={link.href}>
-                            <Link href={link.href} passHref>
+                            <Link href={link.href} passHref legacyBehavior>
                                 <Button variant="link" className="text-base text-gray-700 hover:text-red-600 font-medium">
                                     {link.label}
                                 </Button>

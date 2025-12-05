@@ -3,7 +3,7 @@
 import express from 'express';
 import dotenv from 'dotenv'; // Dùng để quản lý biến môi trường
 import cors from 'cors'; // Cho phép các yêu cầu từ các domain khác
-import connectDB from './db.config.js'; // Giả định đây là tệp kết nối MongoDB
+import connectDB from './db.config.js'; 
 
 // 🎯 IMPORT ROUTES
 import authRoutes from './routes/auth.routes.js'; 

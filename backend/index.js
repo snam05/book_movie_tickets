@@ -1,0 +1,69 @@
+// index.js (Đảm bảo file package.json có "type": "module" để dùng cú pháp import/export)
+
+import express from 'express';
+import dotenv from 'dotenv'; // Dùng để quản lý biến môi trường
+import cors from 'cors'; // Cho phép các yêu cầu từ các domain khác
+import connectDB from './db.config.js'; // Giả định đây là tệp kết nối MongoDB
+
+// 🎯 IMPORT ROUTES
+import authRoutes from './routes/auth.routes.js'; 
+
+// --- CẤU HÌNH BAN ĐẦU ---
+dotenv.config(); // Load biến môi trường từ .env
+const app = express();
+const PORT = process.env.PORT || 8080;
+
+// 1. Middleware cơ bản
+// Cấu hình CORS (cho phép tất cả hoặc tùy chỉnh)
+app.use(cors({
+    origin: '*', // Thay '*' bằng domain frontend của bạn nếu cần bảo mật
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
+// Middleware cho phép Express xử lý JSON trong body request
+app.use(express.json());
+
+// 2. GẮN CÁC ROUTES CỦA ỨNG DỤNG VÀO SERVER
+const API_PREFIX = '/api/v1'; // Định nghĩa tiền tố API chung
+
+app.use(`${API_PREFIX}/auth`, authRoutes); // Gắn Auth Routes
+
+// 3. Định nghĩa Route đầu tiên (kiểm tra server)
+app.get('/', (req, res) => {
+    res.status(200).json({
+        message: 'Chào mừng đến với API V1!',
+        status: 'Server đang chạy ổn định'
+    });
+});
+
+// 4. Định nghĩa Middleware Xử lý Lỗi (Optional, nên có)
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({
+        message: 'Đã xảy ra lỗi bên trong máy chủ',
+        error: err.message
+    });
+});
+
+
+// 5. Khởi động Server
+const startServer = async () => {
+    try {
+        // Kết nối đến cơ sở dữ liệu (giả định hàm này là bất đồng bộ)
+        await connectDB(); 
+        console.log('✅ Kết nối CSDL thành công!');
+
+        // Bắt đầu lắng nghe tại PORT đã định nghĩa
+        app.listen(PORT, () => {
+            console.log(`🚀 Server đang chạy trên cổng ${PORT}`);
+            console.log(`🌐 Truy cập: http://localhost:${PORT}`);
+        });
+    } catch (error) {
+        console.error('❌ Lỗi khởi động Server:', error.message);
+        // Thoát ứng dụng nếu có lỗi nghiêm trọng khi kết nối DB
+        process.exit(1);
+    }
+};
+
+startServer();

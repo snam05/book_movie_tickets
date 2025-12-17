@@ -68,3 +68,18 @@ export const login = async (req, res) => {
         handleErrorResponse(res, error);
     }
 };
+
+// controllers/auth.controller.js
+
+export const verifyUser = async (req, res) => {
+    try {
+        // req.user được tạo ra từ middleware verifyToken (chứa id, role)
+        return res.status(200).json({
+            valid: true,
+            message: "Token hợp lệ",
+            user: req.user 
+        });
+    } catch (error) {
+        return res.status(500).json({ message: "Lỗi xác thực hệ thống" });
+    }
+};

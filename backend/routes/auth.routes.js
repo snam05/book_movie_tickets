@@ -1,16 +1,20 @@
 // routes/auth.routes.js
 
 import express from 'express';
-import { register, login } from '../controllers/auth.controller.js'; // Nhập các hàm từ Controller
+import { register, login, verifyUser } from '../controllers/auth.controller.js'; 
+import { verifyToken } from '../middleware/auth.middleware.js'; // Nhập middleware gác cổng
 
 const router = express.Router();
 
-// Định nghĩa Endpoint Đăng ký
-// POST /api/v1/auth/register
+// 1. Endpoint Đăng ký
 router.post('/register', register); 
 
-// Định nghĩa Endpoint Đăng nhập (sẽ code sau)
-// POST /api/v1/auth/login
+// 2. Endpoint Đăng nhập
 router.post('/login', login);
+
+// 3. Endpoint xác thực Token cho Frontend Middleware
+// Khi Next.js gọi đến đây, nó sẽ chạy qua verifyToken trước.
+// Nếu token sai, verifyToken sẽ trả về 401 ngay lập tức.
+router.get('/verify', verifyToken, verifyUser);
 
 export default router;

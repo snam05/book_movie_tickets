@@ -2,40 +2,26 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
-// Import các component UI của shadcn/ui
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-    Field,
-    FieldGroup,
-    FieldLabel,
-    FieldDescription,
-    FieldSeparator,
-} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
-// Import các kiểu dữ liệu tùy chỉnh
 import { IRegisterForm, IAPIResponse } from '@/types/auth'; 
 
-// Lấy Base URL từ biến môi trường
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL + '/auth'; 
 
-// Định nghĩa Props cho component
 interface RegisterFormProps extends React.ComponentProps<"div"> {
-    onRegisterSuccess: () => void; // Hàm được gọi khi đăng ký thành công
+    onRegisterSuccess: () => void;
 }
 
-export function RegisterForm({
-    className,
-    onRegisterSuccess,
-    ...props
-}: RegisterFormProps) {
+export function RegisterForm({ className, onRegisterSuccess, ...props }: RegisterFormProps) {
     const router = useRouter();
-    // State phải khớp với các trường bắt buộc của backend
     const [formData, setFormData] = useState<IRegisterForm>({
         full_name: '',
         email: '',
@@ -49,27 +35,60 @@ export function RegisterForm({
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    // Hàm kiểm tra các ràng buộc dữ liệu
+    const validateForm = () => {
+        if (formData.full_name.trim().length < 3) {
+            return "Họ và tên phải từ 3 ký tự trở lên.";
+        }
+        
+        // Kiểm tra CCCD: Chỉ chứa số và đúng 12 chữ số
+        const cccdRegex = /^\d{12}$/;
+        if (!cccdRegex.test(formData.cccd_number)) {
+            return "Số CCCD phải là 12 chữ số.";
+        }
+
+        // Kiểm tra mật khẩu: ít nhất 8 ký tự, có chữ hoa, thường, số, ký tự đặc biệt
+        const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passRegex.test(formData.matKhau)) {
+            return "Mật khẩu tối thiểu 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.";
+        }
+
+        return null;
+    };
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError('');
+
+        const validationError = validateForm();
+        if (validationError) {
+            setError(validationError);
+            return;
+        }
+
         setLoading(true);
 
         try {
-            // GỌI API ĐẾN BACKEND ĐĂNG KÝ
             const response = await axios.post<IAPIResponse>(`${API_URL}/register`, formData);
             
-            // LƯU TOKEN VÀ THÔNG TIN USER (Backend trả về token sau khi đăng ký thành công)
-            const { token, user } = response.data.data;
-            localStorage.setItem('token', token);
-            localStorage.setItem('user', JSON.stringify(user));
-            
-            onRegisterSuccess(); 
-            router.push('/'); // Chuyển hướng về trang chủ sau khi đăng ký thành công
+            // Backend trả về: { message, data: user, token }
+            const user = response.data.data;
+            const token = response.data.token;
 
-        } catch (err: any) {
-            // Xử lý lỗi từ backend (trùng email/cccd)
-            const errorMessage = err.response?.data?.message || 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.';
-            setError(errorMessage);
+            if (token && user) {
+                localStorage.setItem('token', token);
+                localStorage.setItem('user', JSON.stringify(user));
+
+                // Phát tín hiệu cho Header cập nhật avatar ngay
+                window.dispatchEvent(new Event('authChange')); 
+
+                onRegisterSuccess();
+                router.push('/');
+                router.refresh();
+            }
+        } catch (err) {
+            const axiosError = err as AxiosError<{ message: string }>;
+            setError(axiosError.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại.');
         } finally {
             setLoading(false);
         }
@@ -77,37 +96,37 @@ export function RegisterForm({
 
     return (
         <div className={cn("flex flex-col gap-6", className)} {...props}>
-            <Card className="overflow-hidden p-0">
+            <Card className="overflow-hidden p-0 border-none shadow-xl">
                 <CardContent className="grid p-0 md:grid-cols-2">
                     <form className="p-6 md:p-8" onSubmit={handleSubmit}>
-                        <FieldGroup>
+                        <div className="flex flex-col gap-5">
                             <div className="flex flex-col items-center gap-2 text-center">
-                                <h1 className="text-2xl font-bold">Tạo Tài Khoản Mới</h1>
-                                <p className="text-muted-foreground text-sm text-balance">
-                                    Đăng ký để bắt đầu đặt vé ngay lập tức!
+                                <h1 className="text-2xl font-bold text-red-600">TẠO TÀI KHOẢN</h1>
+                                <p className="text-muted-foreground text-sm">
+                                    Đăng ký để nhận ưu đãi và đặt vé nhanh hơn.
                                 </p>
                             </div>
 
                             {error && (
-                                <p className="text-sm text-red-600 font-medium text-center">{error}</p>
+                                <div className="p-3 text-xs font-medium text-red-600 bg-red-50 border border-red-100 rounded-md">
+                                    {error}
+                                </div>
                             )}
-                            
-                            {/* 1. Họ và Tên */}
-                            <Field>
-                                <FieldLabel htmlFor="full_name">Họ và Tên</FieldLabel>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="full_name">Họ và Tên</Label>
                                 <Input
                                     id="full_name"
                                     name="full_name"
-                                    type="text"
+                                    placeholder="Ví dụ: Nguyễn Văn A"
                                     required
                                     value={formData.full_name}
                                     onChange={handleChange}
                                 />
-                            </Field>
+                            </div>
 
-                            {/* 2. Email */}
-                            <Field>
-                                <FieldLabel htmlFor="email">Email</FieldLabel>
+                            <div className="grid gap-2">
+                                <Label htmlFor="email">Email</Label>
                                 <Input
                                     id="email"
                                     name="email"
@@ -117,80 +136,62 @@ export function RegisterForm({
                                     value={formData.email}
                                     onChange={handleChange}
                                 />
-                                <FieldDescription>
-                                    Chúng tôi sẽ sử dụng email này để liên hệ với bạn.
-                                </FieldDescription>
-                            </Field>
-                            
-                            {/* 3. Số CCCD */}
-                            <Field>
-                                <FieldLabel htmlFor="cccd_number">Số CCCD</FieldLabel>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="cccd_number">Số CCCD (12 số)</Label>
                                 <Input
                                     id="cccd_number"
                                     name="cccd_number"
                                     type="text"
+                                    maxLength={12}
+                                    placeholder="012345678901"
                                     required
                                     value={formData.cccd_number}
                                     onChange={handleChange}
                                 />
-                            </Field>
+                            </div>
 
-                            {/* 4. Mật khẩu */}
-                            <Field>
-                                <Field className="grid grid-cols-1 gap-4">
-                                    <Field>
-                                        <FieldLabel htmlFor="matKhau">Mật khẩu</FieldLabel>
-                                        <Input 
-                                            id="matKhau" 
-                                            name="matKhau"
-                                            type="password" 
-                                            required 
-                                            value={formData.matKhau}
-                                            onChange={handleChange}
-                                        />
-                                    </Field>
-                                    {/* Bỏ trường Confirm Password vì backend không yêu cầu */}
-                                </Field>
-                                <FieldDescription>
-                                    Mật khẩu phải dài ít nhất 8 ký tự.
-                                </FieldDescription>
-                            </Field>
-                            
-                            <Field>
-                                <Button type="submit" disabled={loading} className="w-full bg-green-600 hover:bg-green-700">
-                                    {loading ? 'Đang tạo tài khoản...' : 'Tạo Tài Khoản'}
-                                </Button>
-                            </Field>
-                            
-                            <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
-                                Hoặc tiếp tục với
-                            </FieldSeparator>
-                            
-                            <Field className="grid grid-cols-3 gap-4">
-                                <Button variant="outline" type="button">...</Button>
-                                <Button variant="outline" type="button">...</Button>
-                                <Button variant="outline" type="button">...</Button>
-                            </Field>
-                            
-                            <FieldDescription className="text-center">
-                                Đã có tài khoản? <Link href="/login" className="text-green-600 underline-offset-2 hover:underline">Đăng nhập</Link>
-                            </FieldDescription>
-                        </FieldGroup>
+                            <div className="grid gap-2">
+                                <Label htmlFor="matKhau">Mật khẩu</Label>
+                                <Input 
+                                    id="matKhau" 
+                                    name="matKhau"
+                                    type="password" 
+                                    placeholder="••••••••"
+                                    required 
+                                    value={formData.matKhau}
+                                    onChange={handleChange}
+                                />
+                            </div>
+
+                            <Button type="submit" disabled={loading} className="w-full bg-red-600 hover:bg-red-700">
+                                {loading ? 'Đang tạo tài khoản...' : 'ĐĂNG KÝ NGAY'}
+                            </Button>
+
+                            <div className="text-center text-sm">
+                                Đã có tài khoản?{" "}
+                                <Link href="/auth/login" className="font-bold text-red-600 underline underline-offset-4">
+                                    Đăng nhập
+                                </Link>
+                            </div>
+                        </div>
                     </form>
-                    <div className="bg-muted relative hidden md:block">
-                        <img
-                            src="/placeholder.svg"
-                            alt="Image"
-                            className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
-                            onError={(e: any) => { e.target.onerror = null; e.target.src = "https://placehold.co/800x600/1e293b/ffffff?text=Cinema+Signup"; }}
+                    <div className="relative hidden bg-muted md:block">
+                        <Image
+                            src="https://images.unsplash.com/photo-1517604401157-538a966b6c4b?q=80&w=1000&auto=format&fit=crop"
+                            alt="Cinema background"
+                            fill
+                            className="object-cover brightness-[0.4]"
+                            priority
                         />
+                        <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center text-white">
+                            <h2 className="text-xl font-bold">Thành viên TicketApp</h2>
+                            <p className="text-sm text-gray-300">Nhận thông báo về các bộ phim bom tấn sớm nhất.</p>
+                        </div>
                     </div>
                 </CardContent>
             </Card>
-            <p className="px-6 text-center text-xs text-muted-foreground">
-                Bằng cách tạo tài khoản, bạn đồng ý với <Link href="#" className="underline-offset-2 hover:underline">Điều khoản dịch vụ</Link>
-                {" "}và <Link href="#" className="underline-offset-2 hover:underline">Chính sách quyền riêng tư</Link> của chúng tôi.
-            </p>
         </div>
     );
 }

@@ -5,7 +5,7 @@ export default async function MovieDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;  // ⭐ FIX CHUẨN NHẤT
+  const { id } = await params; 
 
   return <MovieContent movieId={Number(id)} />;
 }

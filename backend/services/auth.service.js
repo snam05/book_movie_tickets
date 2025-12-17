@@ -49,7 +49,7 @@ export const registerUser = async (userData) => {
     // B. Kiểm tra CCCD
     const existingCccd = await User.findOne({ where: { cccd_number } });
     if (existingCccd) {
-        throw new Error('Số CCCD đã được đăng ký.');
+        throw new Error('Số CCCD đã tồn tại trong hệ thống.');
     }
 
     // C. Băm mật khẩu (Hashing)

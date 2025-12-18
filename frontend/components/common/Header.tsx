@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
@@ -14,7 +14,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Search, LogOut, Ticket, Settings, ShieldCheck } from 'lucide-react';
 import { IUser } from '@/types/auth';
 
@@ -31,10 +31,16 @@ const NAV_LINKS = [
 
 export function Header() {
     const router = useRouter();
-    const [mounted, setMounted] = useState(false);
+    
+    // Use useSyncExternalStore for hydration-safe mounting detection
+    const mounted = useSyncExternalStore(
+        () => () => {},
+        () => true,
+        () => false
+    );
 
     // Hàm lấy User từ LocalStorage
-    const getStoredUser = useCallback(() => {
+    const getStoredUser = useCallback((): IUser | null => {
         if (typeof window === 'undefined') return null;
         const token = localStorage.getItem('token');
         const userData = localStorage.getItem('user');
@@ -52,11 +58,14 @@ export function Header() {
         return null;
     }, []);
 
-    const [user, setUser] = useState<IUser | null>(null);
+    const [user, setUser] = useState<IUser | null>(() => {
+        // Lazy initialization - won't cause cascading renders
+        if (typeof window === 'undefined') return null;
+        return null; // Initial render returns null, synced after mount
+    });
 
     // Xử lý Hydration: Đảm bảo Client khớp với Server
     useEffect(() => {
-        setMounted(true);
         setUser(getStoredUser());
     }, [getStoredUser]);
 

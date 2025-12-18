@@ -1,5 +1,6 @@
-// frontend/app/checkout/page.tsx
+'use client'; // Đảm bảo toàn bộ file hoặc component form là Client Component
 
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -8,7 +9,6 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 
-// Dữ liệu giả lập đơn hàng
 const mockOrder = {
     movie: "Vùng Đất Quỷ Dữ: Sự Trỗi Dậy",
     showtime: "18:30 | Phòng 1",
@@ -16,20 +16,69 @@ const mockOrder = {
     total: 240000,
 };
 
-// Component con: Biểu mẫu Thanh toán & Thông tin Khách hàng
 function CheckoutForm() {
+    // 1. Sử dụng Lazy Initializer để đọc localStorage ngay khi khởi tạo
+    const [customerInfo, setCustomerInfo] = useState(() => {
+        // Kiểm tra xem có đang chạy ở trình duyệt không
+        if (typeof window !== 'undefined') {
+            const savedUser = localStorage.getItem('user');
+            if (savedUser) {
+                try {
+                    const user = JSON.parse(savedUser);
+                    return {
+                        name: user.full_name || '',
+                        email: user.email || '',
+                        phone: ''
+                    };
+                } catch (e) {
+                    console.error("Lỗi parse user:", e);
+                }
+            }
+        }
+        return { name: '', email: '', phone: '' };
+    });
+
     return (
         <Card>
             <CardHeader><CardTitle className="text-2xl text-red-600">Thông Tin Khách Hàng</CardTitle></CardHeader>
             <CardContent className="space-y-6">
-                
-                <div className="space-y-2"><Label htmlFor="name">Họ và Tên</Label><Input id="name" placeholder="Nguyễn Văn A" required /></div>
-                <div className="space-y-2"><Label htmlFor="email">Email</Label><Input id="email" type="email" placeholder="email@example.com" required /></div>
-                <div className="space-y-2"><Label htmlFor="phone">Số Điện Thoại</Label><Input id="phone" type="tel" placeholder="090 123 4567" required /></div>
+                <div className="space-y-2">
+                    <Label htmlFor="name">Họ và Tên</Label>
+                    <Input 
+                        id="name" 
+                        value={customerInfo.name} 
+                        onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
+                        placeholder="Nguyễn Văn A" 
+                        required 
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input 
+                        id="email" 
+                        type="email" 
+                        value={customerInfo.email}
+                        onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})}
+                        placeholder="email@example.com" 
+                        required 
+                        readOnly 
+                        className="bg-gray-50 opacity-70 cursor-not-allowed"
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="phone">Số Điện Thoại</Label>
+                    <Input 
+                        id="phone" 
+                        type="tel" 
+                        value={customerInfo.phone}
+                        onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
+                        placeholder="090 123 4567" 
+                        required 
+                    />
+                </div>
                 
                 <Separator />
                 
-                {/* Phương thức Thanh toán (Dùng Select) */}
                 <div className="space-y-2">
                     <Label>Phương Thức Thanh Toán</Label>
                     <Select required>
@@ -46,7 +95,6 @@ function CheckoutForm() {
     );
 }
 
-// Component con: Tóm tắt Đơn hàng
 function OrderSummary({ order }: { order: typeof mockOrder }) {
     return (
         <Card className="sticky top-20"> 
@@ -54,19 +102,19 @@ function OrderSummary({ order }: { order: typeof mockOrder }) {
             <CardContent>
                 <p className="font-semibold text-lg mb-2">{order.movie}</p>
                 <p className="text-sm text-gray-600 mb-4">Suất chiếu: {order.showtime}</p>
-                
-                {/* Bảng liệt kê ghế */}
                 <Table>
                     <TableHeader><TableRow><TableHead>Ghế</TableHead><TableHead className="text-right">Giá</TableHead></TableRow></TableHeader>
                     <TableBody>
                         {order.seats.map((seat) => (
-                            <TableRow key={seat.name}><TableCell>{seat.name}</TableCell><TableCell className="text-right">{seat.price.toLocaleString('vi-VN')} VNĐ</TableCell></TableRow>
+                            <TableRow key={seat.name}>
+                                <TableCell>{seat.name}</TableCell>
+                                <TableCell className="text-right">{seat.price.toLocaleString('vi-VN')} VNĐ</TableCell>
+                            </TableRow>
                         ))}
                     </TableBody>
                 </Table>
             </CardContent>
             <CardContent>
-                {/* Tổng cộng */}
                 <div className="flex justify-between font-bold text-xl pt-2 border-t mt-4">
                     <span>TỔNG THANH TOÁN:</span>
                     <span className="text-red-600">{order.total.toLocaleString('vi-VN')} VNĐ</span>
@@ -81,9 +129,8 @@ function OrderSummary({ order }: { order: typeof mockOrder }) {
 
 export default function CheckoutPage() {
     return (
-        <div className="space-y-8">
+        <div className="container mx-auto py-10 px-4 space-y-8">
             <h1 className="text-3xl font-extrabold text-red-600">Thanh Toán Đặt Vé</h1>
-            
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2"><CheckoutForm /></div>
                 <div className="lg:col-span-1"><OrderSummary order={mockOrder} /></div>

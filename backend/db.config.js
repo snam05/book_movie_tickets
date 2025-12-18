@@ -12,7 +12,8 @@ const {
     DB_USER, 
     DB_PASS, 
     DB_HOST, 
-    DB_DIALECT 
+    DB_DIALECT,
+    DB_PORT
 } = process.env;
 
 // Báo lỗi nếu thiếu thông số cần thiết
@@ -25,6 +26,7 @@ if (!DB_NAME || !DB_USER || !DB_HOST || !DB_DIALECT) {
 const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASS, {
     host: DB_HOST,
     dialect: DB_DIALECT, 
+    port: DB_PORT || 3306,
     logging: false,
 });
 

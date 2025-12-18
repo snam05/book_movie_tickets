@@ -1,4 +1,5 @@
 import { registerUser, loginUser } from '../services/auth.service.js';
+import User from '../models/User.model.js'; // Đảm bảo bạn đã import Model User
 
 // --- HÀM XỬ LÝ LỖI CHUNG ---
 // Dùng để xử lý các lỗi ném ra từ Service và trả về phản hồi chuẩn 400 hoặc 500
@@ -73,13 +74,67 @@ export const login = async (req, res) => {
 
 export const verifyUser = async (req, res) => {
     try {
-        // req.user được tạo ra từ middleware verifyToken (chứa id, role)
+        // 1. Lấy ID từ req.user (do middleware verifyToken cung cấp)
+        const userId = req.user.id;
+
+        // 2. Truy vấn trực tiếp vào DB để lấy dữ liệu mới nhất
+        const user = await User.findByPk(userId, {
+            // Loại bỏ mật khẩu để bảo mật
+            attributes: { exclude: ['matKhau'] } 
+        });
+
+        if (!user) {
+            return res.status(404).json({ 
+                valid: false, 
+                message: "Người dùng không tồn tại" 
+            });
+        }
+
+        // 3. Trả về dữ liệu "tươi" từ Database
         return res.status(200).json({
             valid: true,
-            message: "Token hợp lệ",
-            user: req.user 
+            message: "Xác thực thành công",
+            user: user 
         });
     } catch (error) {
-        return res.status(500).json({ message: "Lỗi xác thực hệ thống" });
+        console.error("Verify Error:", error);
+        return res.status(500).json({ 
+            valid: false, 
+            message: "Lỗi xác thực hệ thống" 
+        });
     }
 };
+
+export const updateProfile = async (req, res) => {
+    try {
+        const { full_name, cccd_number } = req.body;
+        const userId = req.user.id; // Lấy từ verifyToken middleware
+
+        // 1. Tìm user trong DB
+        const user = await User.findByPk(userId);
+        if (!user) return res.status(404).json({ success: false, message: "Không tìm thấy người dùng" });
+
+        // 2. Cập nhật thông tin mới
+        user.full_name = full_name || user.full_name;
+        user.cccd_number = cccd_number || user.cccd_number;
+        
+        await user.save();
+
+        // 3. Trả về data mới để Frontend cập nhật UI mà không cần F5
+        return res.status(200).json({
+            success: true,
+            message: "Cập nhật thành công",
+            data: {
+                id: user.id,
+                email: user.email,
+                full_name: user.full_name,
+                cccd_number: user.cccd_number,
+                member_code: user.member_code,
+                role: user.role
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Lỗi Server", error: error.message });
+    }
+};
+

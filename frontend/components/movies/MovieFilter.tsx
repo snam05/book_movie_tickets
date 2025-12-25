@@ -1,3 +1,5 @@
+'use client';
+
 // frontend/components/movies/MovieFilter.tsx
 
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -5,13 +7,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { SlidersHorizontal } from "lucide-react";
 
-export function MovieFilter() {
+interface MovieFilterProps {
+  onTabChange?: (value: string) => void;
+}
+
+export function MovieFilter({ onTabChange }: MovieFilterProps) {
   return (
     <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 sm:space-x-4 p-4 bg-white border-b border-gray-200">
       
       {/* Tabs (Bộ lọc Trạng thái Chính: Đang chiếu / Sắp chiếu) */}
       <div className="flex-grow">
-        <Tabs defaultValue="now_showing" className="w-full sm:w-[400px]">
+        <Tabs 
+          defaultValue="now_showing" 
+          className="w-full sm:w-[400px]"
+          onValueChange={onTabChange}
+        >
           <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-0.5 h-auto">
             <TabsTrigger 
               value="now_showing" 

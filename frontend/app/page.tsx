@@ -1,22 +1,24 @@
 // frontend/app/page.tsx
 
-import { MovieFilter } from '@/components/movies/MovieFilter'; 
-import { MovieGrid } from '@/components/movies/MovieGrid';
-import { mockMovies } from '@/data/movies';
+import { MovieList } from '@/components/movies/MovieList';
+import { getNowShowingMovies, getComingSoonMovies, convertToMovieType } from '@/lib/api/movies';
 
-export default function HomePage() {
+export default async function HomePage() {
+  // Fetch data từ API
+  const nowShowingMovies = await getNowShowingMovies();
+  const comingSoonMovies = await getComingSoonMovies();
+
+  // Convert sang format cũ để tương thích với MovieCard
+  const nowShowingData = nowShowingMovies.map(convertToMovieType);
+  const comingSoonData = comingSoonMovies.map(convertToMovieType);
+
   return (
-    <div className="space-y-12">
-      
-      {/* 1. Bộ lọc Phim */}
-      <MovieFilter />
-      
-      {/* 2. Danh sách Phim */}
-      <section>
-          <h1 className="text-3xl font-extrabold text-red-600 mb-6">PHIM ĐANG CHIẾU</h1>
-          <MovieGrid movies={mockMovies} /> 
-      </section>
-      
+    <div className="space-y-8">
+      {/* Component hiển thị filter và danh sách phim */}
+      <MovieList 
+        nowShowingMovies={nowShowingData}
+        comingSoonMovies={comingSoonData}
+      />
     </div>
   );
 }

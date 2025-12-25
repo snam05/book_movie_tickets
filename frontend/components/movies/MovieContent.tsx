@@ -1,25 +1,23 @@
 // frontend/components/movies/MovieContent.tsx
+'use client';
 
-import { getMovieDetail } from '@/data/movies';
+import { MovieFromAPI } from '@/lib/api/movies';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { Clock, Star, Calendar } from 'lucide-react';
-import { ShowtimeButton } from './ShowtimeButton'; // Import component con
+import { Clock, Star, Calendar, Film } from 'lucide-react';
+import { ShowtimeButton } from './ShowtimeButton';
 
-// Component này nhận movieId (đã được chuyển đổi an toàn)
-export async function MovieContent({ movieId }: { movieId: number }) { 
-    // Vẫn nên dùng async/await nếu sau này bạn dùng fetch() API thực tế
-    const movie = getMovieDetail(movieId); 
-
-    if (!movie) {
-        return (
-            <div className="text-center text-xl mt-10 p-10 border border-red-300 bg-red-50 rounded-lg">
-                Không tìm thấy phim có ID: {movieId}. Vui lòng kiểm tra dữ liệu giả.
-            </div>
-        );
-    }
+// Client Component - nhận movie data từ Server Component
+export function MovieContent({ movie }: { movie: MovieFromAPI }) {
     
-    // Toàn bộ giao diện từ trước:
+    // Format data
+    const posterUrl = movie.poster_url && movie.poster_url !== '/posters/' 
+        ? movie.poster_url 
+        : 'https://via.placeholder.com/300x450/1e293b/ffffff?text=No+Poster';
+    
+    const genreNames = movie.genres?.map(g => g.name).join(', ') || 'Chưa phân loại';
+    const releaseDate = new Date(movie.release_date).toLocaleDateString('vi-VN');
+    
     return (
         <div className="space-y-10">
           
@@ -28,7 +26,28 @@ export async function MovieContent({ movieId }: { movieId: number }) {
             
             {/* Cột 1: Poster */}
             <div className="md:col-span-1">
-              <img src={movie.posterUrl} alt={movie.title} className="w-full h-auto rounded-lg shadow-xl" />
+              <img 
+                src={posterUrl} 
+                alt={movie.title} 
+                className="w-full h-auto rounded-lg shadow-xl"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x450/1e293b/ffffff?text=No+Poster';
+                }}
+              />
+              
+              {/* Badge trạng thái */}
+              <div className="mt-4">
+                {movie.status === 'now_showing' && (
+                  <span className="inline-block bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                    🎬 Đang chiếu
+                  </span>
+                )}
+                {movie.status === 'coming_soon' && (
+                  <span className="inline-block bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                    🎞️ Sắp chiếu
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Cột 2: Thông tin chi tiết */}
@@ -39,7 +58,7 @@ export async function MovieContent({ movieId }: { movieId: number }) {
               <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-600">
                 <span className="flex items-center">
                     <Star className="w-4 h-4 mr-1 fill-yellow-500 text-yellow-500" /> 
-                    **{movie.rating}**
+                    <span className="font-bold">{movie.rating}</span>/10
                 </span>
                 <span className="flex items-center">
                     <Clock className="w-4 h-4 mr-1" /> 
@@ -47,44 +66,57 @@ export async function MovieContent({ movieId }: { movieId: number }) {
                 </span>
                 <span className="flex items-center">
                     <Calendar className="w-4 h-4 mr-1" /> 
-                    {movie.releaseDate}
+                    {releaseDate}
+                </span>
+                <span className="flex items-center">
+                    <Film className="w-4 h-4 mr-1" /> 
+                    {movie.age_rating}
                 </span>
               </div>
 
               <Separator className="my-4" />
               
-              <p className="text-gray-700">{movie.description}</p>
+              <p className="text-gray-700 leading-relaxed">{movie.description}</p>
               
               {/* Chi tiết phụ */}
-              <div className="text-sm space-y-1 pt-2">
-                <p><span className="font-semibold">Đạo diễn:</span> {movie.director}</p>
-                <p><span className="font-semibold">Diễn viên:</span> {movie.actors}</p>
-                <p><span className="font-semibold">Thể loại:</span> {movie.genre.join(', ')}</p>
+              <div className="text-sm space-y-2 pt-4 bg-gray-50 p-4 rounded-lg">
+                <p><span className="font-semibold text-gray-800">Đạo diễn:</span> <span className="text-gray-600">{movie.director}</span></p>
+                <p><span className="font-semibold text-gray-800">Diễn viên:</span> <span className="text-gray-600">{movie.actors}</span></p>
+                <p><span className="font-semibold text-gray-800">Thể loại:</span> <span className="text-gray-600">{genreNames}</span></p>
               </div>
+              
+              {/* Trailer Button */}
+              {movie.trailer_url && (
+                <div className="pt-4">
+                  <a 
+                    href={movie.trailer_url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-block"
+                  >
+                    <Button className="bg-red-600 hover:bg-red-700">
+                      🎥 Xem Trailer
+                    </Button>
+                  </a>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Phần 2: Lịch Chiếu (Showtimes) */}
           <section className="mt-10">
-            <h2 className="text-3xl font-bold mb-6 text-gray-800">Chọn Suất Chiếu</h2>
+            <h2 className="text-3xl font-bold mb-6 text-gray-800">Lịch Chiếu</h2>
             
-            {/* Bộ lọc Ngày */}
-            <div className="flex items-center space-x-4 mb-6 p-3 bg-red-50 rounded-lg">
-                <p className="font-semibold text-red-700">Ngày:</p>
-                <Button variant="outline" className="bg-red-600 text-white hover:bg-red-700">Hôm nay</Button>
-                <Button variant="outline">Ngày mai</Button>
-            </div>
-            
-            {/* Hiển thị các giờ chiếu */}
-            <div className="border p-6 rounded-lg shadow-md bg-white">
-              <h3 className="text-xl font-semibold mb-4 text-red-600">Phòng chiếu 2D</h3>
-              <div className="flex flex-wrap gap-4">
-                {movie.showtimes.map((showtime) => (
-                    <ShowtimeButton key={showtime.id} showtime={showtime} />
-                ))}
-                 <Button disabled variant="outline" className="opacity-50">23:00 (Hết)</Button> 
+            {movie.status === 'coming_soon' ? (
+              <div className="border p-6 rounded-lg shadow-md bg-blue-50 text-center">
+                <p className="text-blue-600 font-semibold">🎞️ Phim sắp chiếu - Lịch chiếu sẽ được cập nhật sớm!</p>
               </div>
-            </div>
+            ) : (
+              <div className="border p-6 rounded-lg shadow-md bg-white">
+                <p className="text-gray-500 text-center">Chức năng đặt vé đang được phát triển...</p>
+                {/* TODO: Hiển thị showtimes từ API khi có */}
+              </div>
+            )}
           </section>
           
         </div>

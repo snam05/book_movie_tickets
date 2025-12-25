@@ -1,3 +1,5 @@
+'use client';
+
 // frontend/components/movies/MovieCard.tsx
 
 import Link from 'next/link';
@@ -10,6 +12,11 @@ import { Movie } from '@/types/movie';
 export function MovieCard({ movie }: { movie: Movie }) {
   const detailLink = `/movie/${movie.id}`; // Đường dẫn đến trang chi tiết
   
+  // Placeholder image nếu không có poster
+  const posterUrl = movie.posterUrl && movie.posterUrl !== '/posters/' 
+    ? movie.posterUrl 
+    : 'https://via.placeholder.com/300x450/1e293b/ffffff?text=No+Poster';
+  
   return (
     <Card className="w-full sm:w-[300px] hover:shadow-xl transition-shadow duration-300">
       
@@ -17,9 +24,13 @@ export function MovieCard({ movie }: { movie: Movie }) {
       <CardHeader className="p-0">
         <Link href={detailLink}>
             <img 
-                src={movie.posterUrl}
+                src={posterUrl}
                 alt={`Poster phim ${movie.title}`}
                 className="w-full h-80 object-cover rounded-t-lg"
+                onError={(e) => {
+                  // Fallback nếu ảnh lỗi
+                  (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x450/1e293b/ffffff?text=No+Poster';
+                }}
             />
         </Link>
       </CardHeader>

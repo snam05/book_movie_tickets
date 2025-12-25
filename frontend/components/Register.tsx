@@ -17,7 +17,7 @@ import { IRegisterForm, IAPIResponse } from '@/types/auth';
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL + '/auth'; 
 
 interface RegisterFormProps extends React.ComponentProps<"div"> {
-    onRegisterSuccess: () => void;
+    onRegisterSuccess?: () => void;
 }
 
 export function RegisterForm({ className, onRegisterSuccess, ...props }: RegisterFormProps) {
@@ -81,6 +81,11 @@ export function RegisterForm({ className, onRegisterSuccess, ...props }: Registe
 
                 // Phát tín hiệu cho Header cập nhật avatar ngay
                 window.dispatchEvent(new Event('authChange')); 
+
+                // Gọi callback nếu có
+                if (onRegisterSuccess) {
+                    onRegisterSuccess();
+                }
 
                 // Chuyển hướng về trang chủ
                 router.push('/');

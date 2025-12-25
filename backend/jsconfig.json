@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "target": "ES2020",
+    "checkJs": false,
+    "noImplicitAny": false,
+    "allowJs": true
+  },
+  "exclude": ["node_modules"],
+  "typeAcquisition": {
+    "enable": false
+  }
+}

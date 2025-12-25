@@ -1,5 +1,7 @@
+// @ts-nocheck
 import { registerUser, loginUser } from '../services/auth.service.js';
-import User from '../models/User.model.js'; // Đảm bảo bạn đã import Model User
+import User from '../models/User.model.js';
+import { destroySession } from '../services/session.service.js';
 
 // --- HÀM XỬ LÝ LỖI CHUNG ---
 // Dùng để xử lý các lỗi ném ra từ Service và trả về phản hồi chuẩn 400 hoặc 500
@@ -54,8 +56,21 @@ export const login = async (req, res) => {
             });
         }
         
+        // Lấy thông tin IP và User Agent
+        const ipAddress = req.ip || req.connection.remoteAddress;
+        const userAgent = req.headers['user-agent'] || 'Unknown';
+        
         // Gọi hàm service xử lý đăng nhập
-        const result = await loginUser(email, matKhau);
+        const result = await loginUser(email, matKhau, ipAddress, userAgent);
+
+        // Set cookie với session token
+        res.cookie('session_token', result.sessionToken, {
+            httpOnly: true, // Không thể truy cập từ JavaScript (bảo mật)
+            secure: process.env.NODE_ENV === 'production', // Chỉ gửi qua HTTPS trong production
+            sameSite: 'lax', // Bảo vệ CSRF
+            expires: new Date(result.expiresAt),
+            path: '/'
+        });
 
         // Trả về 200 OK kèm theo thông tin user và token
         return res.status(200).json({
@@ -134,7 +149,45 @@ export const updateProfile = async (req, res) => {
             }
         });
     } catch (error) {
-        res.status(500).json({ success: false, message: "Lỗi Server", error: error.message });
+        console.error("Update Profile Error:", error);
+        return res.status(500).json({ 
+            success: false, 
+            message: "Lỗi cập nhật thông tin" 
+        });
+    }
+};
+
+// 4. Logout - Xóa session
+export const logout = async (req, res) => {
+    try {
+        const sessionToken = req.cookies.session_token;
+        
+        if (!sessionToken) {
+            return res.status(400).json({
+                message: 'Không tìm thấy session'
+            });
+        }
+
+        // Xóa session trong database
+        await destroySession(sessionToken);
+
+        // Xóa cookie
+        res.clearCookie('session_token', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/'
+        });
+
+        return res.status(200).json({
+            message: 'Đăng xuất thành công!'
+        });
+    } catch (error) {
+        console.error('Logout Error:', error);
+        return res.status(500).json({
+            message: 'Lỗi khi đăng xuất',
+            error: error.message
+        });
     }
 };
 

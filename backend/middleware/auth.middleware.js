@@ -1,18 +1,45 @@
+// @ts-nocheck
 import jwt from 'jsonwebtoken';
+import { verifySession } from '../services/session.service.js';
 
 /**
- * Middleware xác thực Token (Người gác cổng chính)
+ * Middleware xác thực Session Token từ Cookie (Ưu tiên)
  */
-export const verifyToken = (req, res, next) => {
-    // 1. Lấy token từ Header (Bearer Token)
+export const verifyToken = async (req, res, next) => {
+    console.log("\x1b[36m%s\x1b[0m", `[Auth Middleware] Checking: ${req.method} ${req.originalUrl}`);
+
+    // 1. Kiểm tra session token trong cookie trước
+    const sessionToken = req.cookies?.session_token;
+    
+    if (sessionToken) {
+        try {
+            // Xác thực session token
+            const sessionResult = await verifySession(sessionToken);
+            
+            if (sessionResult.valid) {
+                // Lấy thông tin user từ session
+                req.user = {
+                    id: sessionResult.userId,
+                    sessionId: sessionResult.session.session_id
+                };
+                console.log("\x1b[32m%s\x1b[0m", `[Auth Middleware] Session Valid: User ID ${sessionResult.userId}`);
+                return next();
+            } else {
+                console.log("\x1b[31m%s\x1b[0m", `[Auth Middleware] Session Invalid: ${sessionResult.message}`);
+                // Xóa cookie không hợp lệ
+                res.clearCookie('session_token');
+            }
+        } catch (error) {
+            console.error('[Auth Middleware] Session Error:', error);
+        }
+    }
+
+    // 2. Fallback: Kiểm tra JWT token từ header (backward compatibility)
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 
-    console.log("\x1b[36m%s\x1b[0m", `[Auth Middleware] Checking: ${req.method} ${req.originalUrl}`);
-
-    // 2. Nếu không có token -> Chặn ngay lập tức
     if (!token) {
-        console.log("\x1b[31m%s\x1b[0m", `[Auth Middleware] Từ chối: Không tìm thấy Token!`);
+        console.log("\x1b[31m%s\x1b[0m", `[Auth Middleware] Từ chối: Không tìm thấy Token hoặc Session!`);
         return res.status(403).json({ 
             message: "Quyền truy cập bị từ chối. Bạn cần đăng nhập!" 
         });
@@ -28,11 +55,10 @@ export const verifyToken = (req, res, next) => {
         }
 
         // 4. Nếu khớp -> Giải mã thông tin và gắn vào req.user
-        // decoded lúc này sẽ chứa { id, role, email } từ lúc bạn ký token khi login
         req.user = decoded;
         
-        console.log("\x1b[32m%s\x1b[0m", `[Auth Middleware] Thành công: User ID ${decoded.id} đang truy cập.`);
-        next(); // Cho phép đi tiếp vào Controller
+        console.log("\x1b[32m%s\x1b[0m", `[Auth Middleware] JWT Valid: User ID ${decoded.id}`);
+        next();
     });
 };
 

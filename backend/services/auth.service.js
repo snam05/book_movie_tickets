@@ -1,7 +1,9 @@
+// @ts-nocheck
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.model.js'; // Nhập Model User (Sequelize)
 import dotenv from 'dotenv';
+import { createSession } from './session.service.js';
 
 // Khởi tạo dotenv để đọc biến môi trường như JWT_SECRET
 dotenv.config(); 
@@ -81,6 +83,7 @@ export const registerUser = async (userData) => {
     const token = createToken({ id: newUser.id, role: newUser.role, mail: newUser.email});
 
     // Trả về thông tin người dùng (trừ password_hash) và token
+    // Không tạo session cho register, user cần đăng nhập sau khi đăng ký
     return {
         user: {
             id: newUser.id,
@@ -94,7 +97,7 @@ export const registerUser = async (userData) => {
 };
 
 // 2. Logic Đăng nhập
-export const loginUser = async (email, matKhau) => {
+export const loginUser = async (email, matKhau, ipAddress, userAgent) => {
     try {
         // A. Tìm người dùng bằng email
         const user = await User.findOne({ where: { email } });
@@ -112,8 +115,11 @@ export const loginUser = async (email, matKhau) => {
             throw new Error('Email hoặc Mật khẩu không đúng.');
         }
 
-        // C. Tạo Token và trả về
+        // C. Tạo JWT Token (vẫn giữ để backward compatibility)
         const token = createToken({ id: user.id, role: user.role });
+
+        // D. Tạo Session trong database
+        const sessionData = await createSession(user.id, ipAddress, userAgent);
 
         return {
             user: {
@@ -123,7 +129,9 @@ export const loginUser = async (email, matKhau) => {
                 member_code: user.member_code,
                 role: user.role
             },
-            token
+            token,
+            sessionToken: sessionData.sessionToken,
+            expiresAt: sessionData.expiresAt
         };
     } catch (error) {
         // Ném lỗi ra ngoài để Controller xử lý (ví dụ: lỗi kết nối DB, lỗi JWT)

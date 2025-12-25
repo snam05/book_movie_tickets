@@ -1,12 +1,15 @@
+// @ts-nocheck
 // index.js (Đảm bảo file package.json có "type": "module" để dùng cú pháp import/export)
 
 import express from 'express';
 import dotenv from 'dotenv'; // Dùng để quản lý biến môi trường
 import cors from 'cors'; // Cho phép các yêu cầu từ các domain khác
+import cookieParser from 'cookie-parser'; // Xử lý cookie
 import connectDB from './db.config.js'; 
 
 // 🎯 IMPORT ROUTES
 import authRoutes from './routes/auth.routes.js'; 
+import movieRoutes from './routes/movie.routes.js'; 
 
 // --- CẤU HÌNH BAN ĐẦU ---
 dotenv.config(); // Load biến môi trường từ .env
@@ -16,10 +19,14 @@ const PORT = process.env.PORT || 8080;
 // 1. Middleware cơ bản
 // Cấu hình CORS (cho phép tất cả hoặc tùy chỉnh)
 app.use(cors({
-    origin: '*', // Thay '*' bằng domain frontend của bạn nếu cần bảo mật
+    origin: 'http://localhost:3000', // Frontend URL, cần cụ thể để cookie hoạt động
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true // Cho phép gửi cookie
 }));
+
+// Middleware xử lý cookie
+app.use(cookieParser());
 
 // Middleware cho phép Express xử lý JSON trong body request
 app.use(express.json());
@@ -28,6 +35,7 @@ app.use(express.json());
 const API_PREFIX = '/api/v1'; // Định nghĩa tiền tố API chung
 
 app.use(`${API_PREFIX}/auth`, authRoutes); // Gắn Auth Routes
+app.use(`${API_PREFIX}/movies`, movieRoutes); // Gắn Movie Routes
 
 // 3. Định nghĩa Route đầu tiên (kiểm tra server)
 app.get('/', (req, res) => {

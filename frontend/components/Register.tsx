@@ -82,9 +82,8 @@ export function RegisterForm({ className, onRegisterSuccess, ...props }: Registe
                 // Phát tín hiệu cho Header cập nhật avatar ngay
                 window.dispatchEvent(new Event('authChange')); 
 
-                onRegisterSuccess();
+                // Chuyển hướng về trang chủ
                 router.push('/');
-                router.refresh();
             }
         } catch (err) {
             const axiosError = err as AxiosError<{ message: string }>;
@@ -179,7 +178,7 @@ export function RegisterForm({ className, onRegisterSuccess, ...props }: Registe
                     </form>
                     <div className="relative hidden bg-muted md:block">
                         <Image
-                            src="https://images.unsplash.com/photo-1517604401157-538a966b6c4b?q=80&w=1000&auto=format&fit=crop"
+                            src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1000&auto=format&fit=crop"
                             alt="Cinema background"
                             fill
                             className="object-cover brightness-[0.4]"

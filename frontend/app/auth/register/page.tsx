@@ -1,20 +1,13 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useRouter } from 'next/navigation';
 import { RegisterForm } from '@/components/Register'; 
 
 export default function RegisterPage() {
     const router = useRouter();
 
-    // 1. Logic kiểm tra nếu đã đăng nhập thì chuyển hướng ngay
-    useEffect(() => {
-        if (typeof window !== 'undefined' && localStorage.getItem('token')) {
-            router.replace('/');
-        }
-    }, [router]);
-
-    // 2. Hàm được gọi sau khi RegisterForm hoàn tất lưu token
+    // Hàm được gọi sau khi RegisterForm hoàn tất lưu token
     const handleRegisterSuccess = () => {
         // Chỉ cần gọi refresh để trang chủ nhận trạng thái đăng nhập mới
         router.refresh(); 

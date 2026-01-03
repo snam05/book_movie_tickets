@@ -161,7 +161,7 @@ export default function AdminShowtimesPage() {
               showtimes.map((showtime) => (
                 <TableRow key={showtime.id}>
                   <TableCell className="font-medium">{showtime.id}</TableCell>
-                  <TableCell className="font-semibold">
+                  <TableCell className="font-semibold max-w-[200px] break-words whitespace-normal">
                     {showtime.movie?.title || 'N/A'}
                   </TableCell>
                   <TableCell>{showtime.theater?.name || 'N/A'}</TableCell>

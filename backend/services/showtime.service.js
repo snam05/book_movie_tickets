@@ -3,6 +3,35 @@ import { Showtime, Movie, Theater, Booking, BookedSeat } from '../models/index.j
 import { Op } from 'sequelize';
 
 /**
+ * Lấy danh sách tất cả suất chiếu
+ * @returns {Promise<Array>} Danh sách showtimes
+ */
+export const getAllShowtimes = async () => {
+    try {
+        const showtimes = await Showtime.findAll({
+            include: [
+                {
+                    model: Movie,
+                    as: 'movie',
+                    attributes: ['id', 'title', 'poster_url', 'duration']
+                },
+                {
+                    model: Theater,
+                    as: 'theater',
+                    attributes: ['id', 'name', 'theater_type']
+                }
+            ],
+            order: [['showtime_date', 'DESC'], ['showtime_time', 'DESC']]
+        });
+
+        return showtimes;
+    } catch (error) {
+        console.error('Error getting all showtimes:', error);
+        throw error;
+    }
+};
+
+/**
  * Lấy thông tin chi tiết suất chiếu kèm seat_map và ghế đã đặt
  * @param {number} showtimeId - ID suất chiếu
  * @returns {Promise<Object>} Thông tin showtime kèm movie, theater và seat_map với trạng thái ghế

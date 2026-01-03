@@ -1,5 +1,26 @@
 // controllers/showtime.controller.js
-import { getShowtimeById } from '../services/showtime.service.js';
+import { getAllShowtimes, getShowtimeById } from '../services/showtime.service.js';
+
+/**
+ * Lấy danh sách tất cả suất chiếu
+ * GET /api/v1/showtimes
+ */
+export const getShowtimes = async (req, res) => {
+    try {
+        const showtimes = await getAllShowtimes();
+
+        return res.status(200).json({
+            message: 'Lấy danh sách suất chiếu thành công',
+            data: showtimes
+        });
+    } catch (error) {
+        console.error('ERROR getting showtimes:', error);
+        return res.status(500).json({
+            message: 'Đã xảy ra lỗi khi lấy danh sách suất chiếu',
+            error: error.message
+        });
+    }
+};
 
 /**
  * Lấy chi tiết suất chiếu

@@ -63,7 +63,7 @@ export default function AdminLayout({
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar */}
-      <aside className="w-64 bg-white shadow-lg">
+      <aside className="w-64 flex-shrink-0 bg-white shadow-lg">
         <div className="p-6 border-b">
           <Link href="/admin">
             <h2 className="text-2xl font-bold text-red-600 cursor-pointer hover:text-red-700 transition-colors">

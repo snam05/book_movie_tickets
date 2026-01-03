@@ -1,8 +1,15 @@
 // routes/showtime.routes.js
 import express from 'express';
-import { getShowtime } from '../controllers/showtime.controller.js';
+import { getShowtimes, getShowtime } from '../controllers/showtime.controller.js';
 
 const router = express.Router();
+
+/**
+ * @route   GET /api/v1/showtimes
+ * @desc    Lấy danh sách tất cả suất chiếu
+ * @access  Public
+ */
+router.get('/', getShowtimes);
 
 /**
  * @route   GET /api/v1/showtimes/:id

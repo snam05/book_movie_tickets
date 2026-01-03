@@ -64,7 +64,7 @@ export const getBookingById = async (bookingId, userId) => {
                         {
                             model: Movie,
                             as: 'movie',
-                            attributes: ['id', 'title', 'poster_url', 'duration', 'genre']
+                            attributes: ['id', 'title', 'poster_url', 'duration']
                         },
                         {
                             model: Theater,
@@ -84,6 +84,66 @@ export const getBookingById = async (bookingId, userId) => {
         return booking;
     } catch (error) {
         console.error('Error in getBookingById:', error);
+        throw error;
+    }
+};
+
+/**
+ * Tạo booking mới
+ */
+export const createBooking = async (userId, showtimeId, seats, paymentMethod = 'cash') => {
+    try {
+        // 1. Kiểm tra showtime có tồn tại không
+        const showtime = await Showtime.findByPk(showtimeId);
+        if (!showtime) {
+            throw new Error('Showtime not found');
+        }
+
+        // 2. Kiểm tra số ghế còn đủ không
+        if (showtime.available_seats < seats.length) {
+            throw new Error('Not enough available seats');
+        }
+
+        // 3. Tính tổng tiền
+        const totalPrice = seats.reduce((sum, seat) => sum + (seat.price || 0), 0);
+
+        // 4. Tạo booking code (format: BK + timestamp + random)
+        const bookingCode = `BK${Date.now()}${Math.floor(Math.random() * 1000)}`;
+
+        // 5. Tạo booking
+        const booking = await Booking.create({
+            user_id: userId,
+            showtime_id: showtimeId,
+            booking_code: bookingCode,
+            total_seats: seats.length,
+            total_price: totalPrice,
+            booking_status: 'confirmed',
+            payment_status: 'paid',
+            payment_method: paymentMethod,
+            payment_date: new Date()
+        });
+
+        // 6. Tạo các booked seats
+        const bookedSeatsData = seats.map(seat => ({
+            booking_id: booking.id,
+            seat_row: seat.row,
+            seat_number: seat.number,
+            seat_type: seat.type,
+            seat_price: seat.price || 0
+        }));
+
+        await BookedSeat.bulkCreate(bookedSeatsData);
+
+        // 7. Cập nhật số ghế còn lại của showtime
+        showtime.available_seats -= seats.length;
+        await showtime.save();
+
+        // 8. Lấy lại booking với đầy đủ thông tin
+        const fullBooking = await getBookingById(booking.id, userId);
+
+        return fullBooking;
+    } catch (error) {
+        console.error('Error in createBooking:', error);
         throw error;
     }
 };

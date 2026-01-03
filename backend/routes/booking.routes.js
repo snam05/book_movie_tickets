@@ -9,6 +9,9 @@ const router = express.Router();
 // Tất cả routes đều yêu cầu authentication
 router.use(verifyToken);
 
+// POST /api/v1/bookings - Tạo booking mới
+router.post('/', bookingController.createBooking);
+
 // GET /api/v1/bookings - Lấy tất cả bookings của user
 router.get('/', bookingController.getMyBookings);
 

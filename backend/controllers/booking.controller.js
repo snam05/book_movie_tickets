@@ -58,6 +58,39 @@ export const getBookingDetail = async (req, res) => {
 };
 
 /**
+ * POST /api/v1/bookings
+ * Tạo booking mới
+ */
+export const createBooking = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { showtimeId, seats, paymentMethod } = req.body;
+
+        // Validate input
+        if (!showtimeId || !seats || !Array.isArray(seats) || seats.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid booking data'
+            });
+        }
+
+        const booking = await bookingService.createBooking(userId, showtimeId, seats, paymentMethod);
+
+        res.status(201).json({
+            success: true,
+            message: 'Booking created successfully',
+            data: booking
+        });
+    } catch (error) {
+        console.error('Error in createBooking:', error);
+        res.status(400).json({
+            success: false,
+            message: error.message || 'Failed to create booking'
+        });
+    }
+};
+
+/**
  * PUT /api/v1/bookings/:id/cancel
  * Hủy booking
  */

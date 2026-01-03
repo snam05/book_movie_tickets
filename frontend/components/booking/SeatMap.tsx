@@ -14,6 +14,7 @@ type SeatData = {
     type: 'standard' | 'vip' | 'couple';
     isBooked?: boolean;
     pairWith?: string;
+    price?: number;
 };
 
 type SeatMapData = {
@@ -30,7 +31,7 @@ type SeatMapData = {
 // Hàm lấy class CSS cho ghế
 const getSeatClass = (seat: SeatData, isSelected: boolean) => {
     if (isSelected) return 'bg-green-600 hover:bg-green-700 text-white shadow-lg';
-    if (seat.isBooked) return 'bg-red-400 cursor-not-allowed text-white';
+    if (seat.isBooked) return 'bg-red-500 cursor-not-allowed text-white shadow-inner';
     
     switch (seat.type) {
         case 'vip':
@@ -80,9 +81,10 @@ export function SeatMap({ seatMapData, basePrice, onSeatsSelected }: SeatMapProp
         seatMapData.layout.forEach(row => {
             row.forEach(seat => {
                 if (seatIds.includes(seat.id)) {
-                    seats.push(seat);
                     const multiplier = seatMapData.pricing[seat.type] || 1.0;
-                    totalPrice += basePrice * multiplier;
+                    const seatPrice = Math.round(basePrice * multiplier);
+                    seats.push({ ...seat, price: seatPrice });
+                    totalPrice += seatPrice;
                 }
             });
         });
@@ -111,19 +113,29 @@ export function SeatMap({ seatMapData, basePrice, onSeatsSelected }: SeatMapProp
                         {/* Render ghế trong hàng */}
                         {row.map((seat) => {
                             const isSelected = selectedSeats.includes(seat.id);
+                            const isCouple = seat.type === 'couple';
+
+                            // Couple seats span exactly 2 columns (2 seats width + 1 gap between)
+                            // Using calc to ensure exact width: 2 * seat width + 1 * gap
+                            const seatSizeClass = isCouple ? 'h-9' : 'w-9 h-9';
+                            const seatStyle = isCouple ? { width: 'calc(2 * 2.25rem + 0.5rem)' } : {};
+
                             return (
                                 <Button
                                     key={seat.id}
                                     size="sm"
                                     disabled={seat.isBooked}
                                     onClick={() => handleSeatClick(seat)}
+                                    style={seatStyle}
                                     className={cn(
-                                        'w-9 h-9 p-0 rounded text-xs font-semibold transition-all duration-150',
+                                        'p-0 rounded text-xs font-semibold transition-all duration-150',
+                                        seatSizeClass,
+                                        isCouple && 'col-span-2',
                                         getSeatClass(seat, isSelected)
                                     )}
                                     title={`${seat.id} - ${seat.type}${seat.isBooked ? ' (Đã đặt)' : ''}`}
                                 >
-                                    {seat.number}
+                                    {seat.id}
                                 </Button>
                             );
                         })}

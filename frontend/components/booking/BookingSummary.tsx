@@ -1,6 +1,9 @@
 // frontend/components/booking/BookingSummary.tsx
 'use client';
 
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Cookies from 'js-cookie';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -10,6 +13,8 @@ type SeatData = {
     row: string;
     number: number;
     type: 'standard' | 'vip' | 'couple';
+    pairWith?: string;
+    price?: number;
 };
 
 type BookingSummaryProps = {
@@ -31,11 +36,55 @@ export function BookingSummary({
     showtimeDate,
     showtimeTime
 }: BookingSummaryProps) {
+    const router = useRouter();
+    const [loading, setLoading] = useState(false);
     
-    const handleCheckout = () => {
-        // TODO: Navigate to checkout page with booking data
-        console.log('Checkout:', { selectedSeats, totalPrice, showtimeId });
-        alert('Chức năng thanh toán đang phát triển');
+    const handleCheckout = async () => {
+        if (selectedSeats.length === 0) {
+            alert('Vui lòng chọn ít nhất 1 ghế');
+            return;
+        }
+
+        setLoading(true);
+        
+        try {
+            const token = Cookies.get('token');
+            
+            if (!token) {
+                alert('Vui lòng đăng nhập để đặt vé');
+                router.push('/auth/signin');
+                return;
+            }
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/bookings`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    showtimeId: parseInt(showtimeId),
+                    seats: selectedSeats,
+                    paymentMethod: 'cash'
+                })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || 'Đặt vé thất bại');
+            }
+
+            alert(`Đặt vé thành công! Mã đặt vé: ${result.data.booking_code}`);
+            router.push('/my-bookings');
+            
+        } catch (error: any) {
+            console.error('Booking error:', error);
+            alert(error.message || 'Đã có lỗi xảy ra. Vui lòng thử lại!');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -66,7 +115,7 @@ export function BookingSummary({
                                     <TableCell className="font-medium">{seat.id}</TableCell>
                                     <TableCell className="capitalize">{seat.type}</TableCell>
                                     <TableCell className="text-right">
-                                        {(totalPrice / selectedSeats.length).toLocaleString('vi-VN')}
+                                        {(seat.price ?? Math.round(totalPrice / selectedSeats.length)).toLocaleString('vi-VN')} VNĐ
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -87,10 +136,10 @@ export function BookingSummary({
                 <Button 
                     size="lg" 
                     className="w-full bg-red-600 hover:bg-red-700 text-white shadow-lg"
-                    disabled={selectedSeats.length === 0}
+                    disabled={selectedSeats.length === 0 || loading}
                     onClick={handleCheckout}
                 >
-                    Tiến Hành Thanh Toán
+                    {loading ? 'Đang xử lý...' : 'Đã Thanh Toán'}
                 </Button>
             </CardFooter>
         </Card>

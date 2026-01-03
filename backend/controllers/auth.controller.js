@@ -28,14 +28,26 @@ export const register = async (req, res) => {
     try {
         const userData = req.body;
         
+        // Lấy thông tin IP và User Agent
+        const ipAddress = req.ip || req.connection.remoteAddress;
+        const userAgent = req.headers['user-agent'] || 'Unknown';
+        
         // Gọi hàm service xử lý đăng ký
-        const result = await registerUser(userData);
+        const result = await registerUser(userData, ipAddress, userAgent);
 
-        // Trả về 201 Created kèm theo thông tin user và token
+        // Set cookie với session token (giống login)
+        res.cookie('session_token', result.sessionToken, {
+            httpOnly: true, // Không thể truy cập từ JavaScript (bảo mật)
+            secure: process.env.NODE_ENV === 'production', // Chỉ gửi qua HTTPS trong production
+            sameSite: 'lax', // Bảo vệ CSRF
+            expires: new Date(result.expiresAt),
+            path: '/'
+        });
+
+        // Trả về 201 Created - CHỈ thông tin user, KHÔNG trả token
         return res.status(201).json({
             message: 'Đăng ký thành công!',
-            data: result.user,
-            token: result.token
+            data: result.user
         });
 
     } catch (error) {
@@ -72,11 +84,10 @@ export const login = async (req, res) => {
             path: '/'
         });
 
-        // Trả về 200 OK kèm theo thông tin user và token
+        // Trả về 200 OK - CHỈ thông tin user, KHÔNG trả token
         return res.status(200).json({
             message: 'Đăng nhập thành công!',
-            data: result.user,
-            token: result.token
+            data: result.user
         });
 
     } catch (error) {

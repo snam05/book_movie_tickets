@@ -5,7 +5,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import axios, { AxiosError } from 'axios';
-import Cookies from 'js-cookie';
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,34 +31,20 @@ export function SignInForm({ className, onSignInSuccess, ...props }: SignInFormP
         setLoading(true);
 
         try {
-            const response = await axios.post<IAPIResponse>(`${API_URL}/login`, formData);
-            const user = response.data.data;
-            const token = response.data.token;
+            const response = await axios.post<IAPIResponse>(`${API_URL}/login`, formData, {
+                withCredentials: true // Quan trọng: cho phép gửi/nhận cookie
+            });
 
-            if (token && user) {
-                // 1. Lưu vào localStorage cho Client UI
-                localStorage.setItem('token', token);
-                localStorage.setItem('user', JSON.stringify(user));
-
-                // 2. Lưu vào COOKIE cho Middleware (QUAN TRỌNG)
-                Cookies.set('token', token, { 
-                    expires: 1, 
-                    path: '/',
-                    sameSite: 'lax',
-                    secure: process.env.NODE_ENV === 'production' 
-                });
-
-                // 3. Thông báo Header cập nhật
+            // Backend chỉ trả user data, session_token được set qua HttpOnly cookie
+            if (response.data.data) {
+                // Thông báo Header cập nhật (Header sẽ tự fetch /auth/verify)
                 window.dispatchEvent(new Event('authChange')); 
                 
-                // 4. CHUYỂN HƯỚNG: Sử dụng router.push phối hợp với onSignInSuccess
-                // Gọi callback từ props trước nếu có
+                // Gọi callback từ props
                 onSignInSuccess();
                 
                 // Chuyển hướng về trang chủ
                 router.push('/');
-                
-                // Ép router nhận diện cookie mới ngay lập tức
                 router.refresh();
             }
 

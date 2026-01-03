@@ -3,25 +3,18 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { SignInForm } from '@/components/auth/SignIn'; 
-import Cookies from 'js-cookie';
 
 export default function SignInPage() {
     const router = useRouter();
 
-    // 1. Nếu đã có token (đã đăng nhập), không cho ở lại trang signin
-    useEffect(() => {
-        const token = Cookies.get('token');
-        if (token) {
-            router.replace('/');
-        }
-    }, [router]);
+    // Middleware sẽ xử lý redirect nếu đã đăng nhập (có session_token)
+    // Không cần check ở đây nữa
 
-    // 2. Xử lý khi đăng nhập thành công từ SignInForm
+    // Xử lý khi đăng nhập thành công từ SignInForm
     const handleSignInSuccess = () => {
-    // Ép trình duyệt tải lại toàn bộ từ trang chủ
-    // Cách này đảm bảo 100% thành công vì nó xóa bỏ mọi cache router cũ
-    window.location.href = '/'; 
-};
+        // Ép trình duyệt tải lại toàn bộ từ trang chủ
+        window.location.href = '/'; 
+    };
 
     return (
         <div className="bg-background flex min-h-svh flex-col items-center justify-center p-6 md:p-10">

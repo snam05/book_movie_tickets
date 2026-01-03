@@ -37,8 +37,13 @@ export function SignUpForm({ className, onSignUpSuccess, ...props }: SignUpFormP
 
     // Hàm kiểm tra các ràng buộc dữ liệu
     const validateForm = () => {
-        if (formData.full_name.trim().length < 3) {
+        const fullName = formData.full_name.trim();
+        if (fullName.length < 3) {
             return "Họ và tên phải từ 3 ký tự trở lên.";
+        }
+        const nameRegex = /^[\p{L} ]+$/u;
+        if (!nameRegex.test(fullName)) {
+            return "Họ tên chỉ được chứa chữ và khoảng trắng.";
         }
         
         // Kiểm tra CCCD: Chỉ chứa số và đúng 12 chữ số
@@ -69,17 +74,13 @@ export function SignUpForm({ className, onSignUpSuccess, ...props }: SignUpFormP
         setLoading(true);
 
         try {
-            const response = await axios.post<IAPIResponse>(`${API_URL}/register`, formData);
+            const response = await axios.post<IAPIResponse>(`${API_URL}/register`, formData, {
+                withCredentials: true // Quan trọng: cho phép gửi/nhận cookie
+            });
             
-            // Backend trả về: { message, data: user, token }
-            const user = response.data.data;
-            const token = response.data.token;
-
-            if (token && user) {
-                localStorage.setItem('token', token);
-                localStorage.setItem('user', JSON.stringify(user));
-
-                // Phát tín hiệu cho Header cập nhật avatar ngay
+            // Backend trả về: { message, data: user } và set session_token cookie
+            if (response.data.data) {
+                // Phát tín hiệu cho Header cập nhật (Header sẽ fetch /auth/verify)
                 window.dispatchEvent(new Event('authChange')); 
 
                 // Gọi callback nếu có
@@ -89,6 +90,7 @@ export function SignUpForm({ className, onSignUpSuccess, ...props }: SignUpFormP
 
                 // Chuyển hướng về trang chủ
                 router.push('/');
+                router.refresh();
             }
         } catch (err) {
             const axiosError = err as AxiosError<{ message: string }>;

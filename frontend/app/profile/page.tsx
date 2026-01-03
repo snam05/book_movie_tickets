@@ -29,11 +29,8 @@ export default function ProfilePage() {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const token = localStorage.getItem('token');
-                if (!token) return;
-
                 const response = await axios.get(`${API_URL}/verify`, {
-                    headers: { Authorization: `Bearer ${token}` }
+                    withCredentials: true
                 });
 
                 if (response.data.valid) {
@@ -54,20 +51,18 @@ export default function ProfilePage() {
         fetchProfile();
     }, []);
 
-    // 2. Logic xử lý lưu thay đổi (Đã đưa vào trong Component)
+    // 2. Logic xử lý lưu thay đổi
     const handleSave = async () => {
         try {
-            const token = localStorage.getItem('token');
             const res = await axios.put(`${API_URL}/update-profile`, formData, {
-                headers: { Authorization: `Bearer ${token}` }
+                withCredentials: true
             });
 
             if (res.data.success) {
                 const updatedData = res.data.data;
                 
-                // Cập nhật giao diện và bộ nhớ
+                // Cập nhật giao diện
                 setUser(updatedData);
-                localStorage.setItem('user', JSON.stringify(updatedData));
                 
                 // Thông báo cho các component khác (như Header) cập nhật lại tên
                 window.dispatchEvent(new Event('authChange'));
@@ -88,7 +83,7 @@ export default function ProfilePage() {
     );
 
     return (
-        <div className="container mx-auto py-10 px-4 max-w-4xl">
+        <div className="py-10 max-w-4xl mx-auto">
             <Card className="border-none shadow-2xl overflow-hidden bg-white">
                 {/* Phần bìa màu Gradient */}
                 <div className="h-32 bg-gradient-to-r from-red-600 to-red-800 relative">

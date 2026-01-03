@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
-    const token = request.cookies.get('token')?.value;
+    const sessionToken = request.cookies.get('session_token')?.value;
     const { pathname } = request.nextUrl;
 
     // 1. Định nghĩa các nhóm đường dẫn
@@ -12,36 +12,34 @@ export async function middleware(request: NextRequest) {
     const isProtected = protectedPaths.some(path => pathname.startsWith(path));
     const isAuthPage = authPaths.some(path => pathname.startsWith(path));
 
-    // 2. Nếu đã có Token mà cố vào trang Login/Register -> Đẩy về trang chủ
-    if (isAuthPage && token) {
+    // 2. Nếu đã có Session Token mà cố vào trang Login/Register -> Đẩy về trang chủ
+    if (isAuthPage && sessionToken) {
         return NextResponse.redirect(new URL('/', request.url));
     }
 
     // 3. Xử lý các trang yêu cầu đăng nhập
     if (isProtected) {
-        if (!token) {
+        if (!sessionToken) {
             return NextResponse.redirect(new URL('/auth/signin', request.url));
         }
 
         try {
-            // Gọi Backend để xác thực thực tế
+            // Gọi Backend để xác thực session token
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/verify`, {
                 method: 'GET',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
+                    'Cookie': `session_token=${sessionToken}`
                 },
-                // Quan trọng: Thêm cache: 'no-store' để đảm bảo luôn check mới
                 cache: 'no-store'
             });
 
             if (!response.ok) {
                 const res = NextResponse.redirect(new URL('/auth/signin', request.url));
-                res.cookies.delete('token');
+                res.cookies.delete('session_token');
                 return res;
             }
         } catch {
-            // Nếu server backend sập, tạm thời cho qua hoặc chặn tùy bạn
-            // Ở đây chọn redirect để an toàn
+            // Nếu server backend sập hoặc lỗi, redirect để an toàn
             return NextResponse.redirect(new URL('/auth/signin', request.url));
         }
     }
@@ -49,12 +47,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
 }
 
-// Giới hạn matcher để middleware không chạy vào các file tĩnh (ảnh, css, js) gây chậm web
+// Giới hạn matcher để middleware không chạy vào các file tĩnh
 export const config = {
     matcher: [
         '/profile/:path*', 
         '/admin/:path*', 
         '/booking/:path*', 
-        '/auth/:path*' // Thêm auth để chặn người đã login vào lại trang login
+        '/checkout/:path*',
+        '/auth/:path*'
     ],
 };

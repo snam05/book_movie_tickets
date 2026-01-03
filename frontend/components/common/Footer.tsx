@@ -30,7 +30,7 @@ export function Footer() {
 
   return (
     <footer className="bg-gray-800 text-white mt-12">
-      <div className="container mx-auto p-8">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
         
         {/* Phần Nội dung Chính của Footer (3 Cột) */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">

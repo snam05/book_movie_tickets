@@ -1,15 +1,11 @@
 // @ts-nocheck
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import User from '../models/User.model.js'; // Nhập Model User (Sequelize)
 import dotenv from 'dotenv';
 import { createSession } from './session.service.js';
 
-// Khởi tạo dotenv để đọc biến môi trường như JWT_SECRET
-dotenv.config(); 
-
-const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1d';
+// Khởi tạo dotenv để đọc biến môi trường
+dotenv.config();
 
 
 // Hàm tạo mã thành viên 10 ký tự ngẫu nhiên
@@ -22,16 +18,8 @@ const generateMemberCode = () => {
     return code;
 };
 
-// --- HÀM HỖ TRỢ: TẠO JWT TOKEN ---
-const createToken = (payload) => {
-    // Sử dụng biến môi trường JWT_SECRET để ký token
-    return jwt.sign(payload, JWT_SECRET, {
-        expiresIn: JWT_EXPIRES_IN,
-    });
-};
-
 // 1. Logic Đăng ký Người dùng
-export const registerUser = async (userData) => {
+export const registerUser = async (userData, ipAddress, userAgent) => {
     // Lấy các trường cần thiết. matKhau là mật khẩu thô từ Body JSON.
     const { email, matKhau, cccd_number, full_name, ...rest } = userData; 
 
@@ -79,11 +67,10 @@ export const registerUser = async (userData) => {
         member_code: memberCode
     });
 
-    // F. Tạo Token và trả về
-    const token = createToken({ id: newUser.id, role: newUser.role, mail: newUser.email});
+    // F. Tạo Session trong database (auto-login sau khi đăng ký)
+    const sessionData = await createSession(newUser.id, ipAddress, userAgent);
 
-    // Trả về thông tin người dùng (trừ password_hash) và token
-    // Không tạo session cho register, user cần đăng nhập sau khi đăng ký
+    // Trả về thông tin người dùng (trừ password_hash) và session
     return {
         user: {
             id: newUser.id,
@@ -92,7 +79,8 @@ export const registerUser = async (userData) => {
             member_code: newUser.member_code,
             role: newUser.role
         },
-        token
+        sessionToken: sessionData.sessionToken,
+        expiresAt: sessionData.expiresAt
     };
 };
 
@@ -115,10 +103,7 @@ export const loginUser = async (email, matKhau, ipAddress, userAgent) => {
             throw new Error('Email hoặc Mật khẩu không đúng.');
         }
 
-        // C. Tạo JWT Token (vẫn giữ để backward compatibility)
-        const token = createToken({ id: user.id, role: user.role });
-
-        // D. Tạo Session trong database
+        // C. Tạo Session trong database
         const sessionData = await createSession(user.id, ipAddress, userAgent);
 
         return {
@@ -129,12 +114,11 @@ export const loginUser = async (email, matKhau, ipAddress, userAgent) => {
                 member_code: user.member_code,
                 role: user.role
             },
-            token,
             sessionToken: sessionData.sessionToken,
             expiresAt: sessionData.expiresAt
         };
     } catch (error) {
-        // Ném lỗi ra ngoài để Controller xử lý (ví dụ: lỗi kết nối DB, lỗi JWT)
+        // Ném lỗi ra ngoài để Controller xử lý (ví dụ: lỗi kết nối DB)
         throw error;
     }
 };

@@ -111,10 +111,73 @@ export function MovieContent({ movie }: { movie: MovieFromAPI }) {
               <div className="border p-6 rounded-lg shadow-md bg-blue-50 text-center">
                 <p className="text-blue-600 font-semibold">🎞️ Phim sắp chiếu - Lịch chiếu sẽ được cập nhật sớm!</p>
               </div>
+            ) : movie.showtimes && movie.showtimes.length > 0 ? (
+              <div className="space-y-6">
+                {/* Nhóm lịch chiếu theo ngày */}
+                {Object.entries(
+                  movie.showtimes.reduce((acc, showtime) => {
+                    const date = showtime.showtime_date;
+                    if (!acc[date]) acc[date] = [];
+                    acc[date].push(showtime);
+                    return acc;
+                  }, {} as Record<string, typeof movie.showtimes>)
+                ).map(([date, showtimes]) => {
+                  const formattedDate = new Date(date).toLocaleDateString('vi-VN', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  });
+                  
+                  return (
+                    <div key={date} className="border rounded-lg shadow-sm bg-white p-6">
+                      <h3 className="text-xl font-bold text-gray-800 mb-4">
+                        📅 {formattedDate}
+                      </h3>
+                      
+                      {/* Nhóm theo rạp */}
+                      {Object.entries(
+                        showtimes.reduce((acc, showtime) => {
+                          const theaterName = showtime.theater.name;
+                          if (!acc[theaterName]) acc[theaterName] = [];
+                          acc[theaterName].push(showtime);
+                          return acc;
+                        }, {} as Record<string, typeof showtimes>)
+                      ).map(([theaterName, theaterShowtimes]) => (
+                        <div key={theaterName} className="mb-4 last:mb-0">
+                          <div className="flex items-center gap-2 mb-3">
+                            <Film className="w-5 h-5 text-red-600" />
+                            <span className="font-semibold text-gray-700">{theaterName}</span>
+                            <span className="text-xs text-gray-500">({theaterShowtimes[0].theater.theater_type})</span>
+                          </div>
+                          
+                          <div className="flex flex-wrap gap-3">
+                            {theaterShowtimes
+                              .sort((a, b) => a.showtime_time.localeCompare(b.showtime_time))
+                              .map((showtime) => (
+                              <Button
+                                key={showtime.id}
+                                variant="outline"
+                                className="flex flex-col items-center gap-1 h-auto py-3 px-4 hover:bg-red-50 hover:border-red-500"
+                                asChild
+                              >
+                                <a href={`/booking/${showtime.id}`}>
+                                  <span className="font-bold text-lg">{showtime.showtime_time.slice(0, 5)}</span>
+                                  <span className="text-xs text-gray-500">{parseInt(showtime.price).toLocaleString('vi-VN')}đ</span>
+                                  <span className="text-xs text-green-600">{showtime.available_seats} ghế</span>
+                                </a>
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })}
+              </div>
             ) : (
-              <div className="border p-6 rounded-lg shadow-md bg-white">
-                <p className="text-gray-500 text-center">Chức năng đặt vé đang được phát triển...</p>
-                {/* TODO: Hiển thị showtimes từ API khi có */}
+              <div className="border p-6 rounded-lg shadow-md bg-gray-50 text-center">
+                <p className="text-gray-500">Hiện tại chưa có lịch chiếu cho phim này.</p>
               </div>
             )}
           </section>

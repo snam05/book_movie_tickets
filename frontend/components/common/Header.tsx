@@ -3,9 +3,7 @@
 import React, { useEffect, useState, useCallback, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { jwtDecode, JwtPayload } from 'jwt-decode';
 import { Button } from '@/components/ui/button';
-import Cookies from 'js-cookie';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -18,10 +16,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Search, LogOut, Ticket, Settings, ShieldCheck } from 'lucide-react';
 import { IUser } from '@/types/auth';
 
-interface CustomJwtPayload extends JwtPayload {
-    id: number;
-    role: string;
-}
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL + '/auth';
 
 const NAV_LINKS = [
     { href: "/", label: "Lịch Chiếu" },
@@ -39,60 +34,59 @@ export function Header() {
         () => false
     );
 
-    // Hàm lấy User từ LocalStorage
-    const getStoredUser = useCallback((): IUser | null => {
+    // Hàm lấy User từ Backend qua /auth/verify
+    const fetchUser = useCallback(async (): Promise<IUser | null> => {
         if (typeof window === 'undefined') return null;
-        const token = localStorage.getItem('token');
-        const userData = localStorage.getItem('user');
         
-        if (token && userData && userData !== "undefined") {
-            try {
-                const decoded = jwtDecode<CustomJwtPayload>(token);
-                if (decoded.exp && decoded.exp > Date.now() / 1000) {
-                    return JSON.parse(userData) as IUser;
-                }
-            } catch {
-                return null;
+        try {
+            const response = await fetch(`${API_URL}/verify`, {
+                method: 'GET',
+                credentials: 'include', // Gửi cookie session_token
+                cache: 'no-store'
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                return data.user as IUser;
             }
+            return null;
+        } catch (error) {
+            console.error('Error fetching user:', error);
+            return null;
         }
-        return null;
     }, []);
 
-    const [user, setUser] = useState<IUser | null>(() => {
-        // Lazy initialization - won't cause cascading renders
-        if (typeof window === 'undefined') return null;
-        return null; // Initial render returns null, synced after mount
-    });
+    const [user, setUser] = useState<IUser | null>(null);
 
     // Xử lý Hydration: Đảm bảo Client khớp với Server
     useEffect(() => {
-        setUser(getStoredUser());
-    }, [getStoredUser]);
+        fetchUser().then(setUser);
+    }, [fetchUser]);
 
-    const handleLogout = useCallback(() => {
-    // 1. Xóa dữ liệu trong LocalStorage (phục vụ UI/Header)
-    localStorage.removeItem('token');
-    localStorage.setItem('user', 'undefined'); // Hoặc removeItem('user')
-    
-    // 2. QUAN TRỌNG: Xóa Cookie (phục vụ Middleware Frontend)
-    // Lưu ý: path phải khớp với path lúc bạn set (thường là '/')
-    Cookies.remove('token', { path: '/' });
+    const handleLogout = useCallback(async () => {
+        try {
+            // Gọi backend để xóa session
+            await fetch(`${API_URL}/logout`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
 
-    // 3. Cập nhật lại State để ẩn Avatar ngay lập tức
-    setUser(null);
+        // Cập nhật State
+        setUser(null);
 
-    // 4. Đẩy người dùng về trang chủ hoặc trang đăng nhập
-    router.push('/auth/signin');
-    
-    // 5. Refresh lại để Middleware Next.js nhận diện trạng thái "không token"
-    router.refresh();
+        // Đẩy người dùng về trang đăng nhập
+        router.push('/auth/signin');
+        router.refresh();
 
-    console.log("Logged out: LocalStorage & Cookies cleared.");
-}, [router]);
+        console.log("Logged out: Session cleared.");
+    }, [router]);
 
     const syncAuth = useCallback(() => {
-        setUser(getStoredUser());
-    }, [getStoredUser]);
+        fetchUser().then(setUser);
+    }, [fetchUser]);
 
     useEffect(() => {
         window.addEventListener('authChange', syncAuth);
@@ -108,17 +102,17 @@ export function Header() {
 
     return (
         <header className="bg-white shadow-sm sticky top-0 z-50 border-b">
-            <div className="container mx-auto px-4 h-20 flex items-center justify-between">
-                <Link href="/" className="text-2xl font-black text-red-600 tracking-tighter">
+            <div className="max-w-7xl mx-auto px-6 lg:px-8 h-20 flex items-center justify-between">
+                <Link href="/" className="text-2xl font-black text-red-600 tracking-tighter flex-shrink-0">
                     TICKET<span className="text-gray-900">APP</span>
                 </Link>
 
-                <div className="hidden md:flex items-center bg-gray-100 rounded-full px-4 py-2 w-full max-w-md mx-8">
+                <div className="hidden md:flex items-center bg-gray-100 rounded-full px-5 py-2.5 w-full max-w-md mx-6 lg:mx-10">
                     <Search className="h-4 w-4 text-gray-400 mr-2" />
                     <input type="text" placeholder="Tìm phim..." className="bg-transparent border-none focus:outline-none text-sm w-full" />
                 </div>
 
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-4 flex-shrink-0">
                     {user ? (
                         <DropdownMenu modal={false}>
                             <DropdownMenuTrigger asChild>
@@ -160,10 +154,10 @@ export function Header() {
                 </div>
             </div>
             <Separator />
-            <nav className="container mx-auto px-4 py-2 bg-white">
+            <nav className="max-w-7xl mx-auto px-6 lg:px-8 py-3 bg-white">
                 <ul className="flex space-x-8">
                     {NAV_LINKS.map((link) => (
-                        <li key={link.href}><Link href={link.href} className="text-sm font-medium text-gray-700 hover:text-red-600 uppercase">{link.label}</Link></li>
+                        <li key={link.href}><Link href={link.href} className="text-sm font-medium text-gray-700 hover:text-red-600 transition-colors uppercase">{link.label}</Link></li>
                     ))}
                 </ul>
             </nav>

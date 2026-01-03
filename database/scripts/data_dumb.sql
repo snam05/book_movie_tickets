@@ -15,8 +15,6 @@ INSERT INTO users (email, password_hash, full_name, cccd_number, date_of_birth, 
 -- Admin accounts
 ('admin@bookmovie.vn', '$2b$10$abcdefghijklmnopqrstuvwxyz123456', 'Nguyễn Văn Admin', '001234567890', '1990-01-15', 'male', 'ADM001', 'admin'),
 ('manager@bookmovie.vn', '$2b$10$abcdefghijklmnopqrstuvwxyz123457', 'Trần Thị Quản Lý', '001234567891', '1992-05-20', 'female', 'ADM002', 'admin'),
-
--- Customer accounts
 ('nguyenvana@gmail.com', '$2b$10$hashedpassword1', 'Nguyễn Văn A', '001234567892', '1995-03-12', 'male', 'MEM001', 'customer'),
 ('tranthib@gmail.com', '$2b$10$hashedpassword2', 'Trần Thị B', '001234567893', '1998-07-25', 'female', 'MEM002', 'customer'),
 ('levanc@gmail.com', '$2b$10$hashedpassword3', 'Lê Văn C', '001234567894', '1997-11-08', 'male', 'MEM003', 'customer'),

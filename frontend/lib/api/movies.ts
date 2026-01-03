@@ -10,6 +10,22 @@ export interface Genre {
   name: string;
 }
 
+export interface Theater {
+  id: number;
+  name: string;
+  theater_type: string;
+}
+
+export interface ShowtimeFromAPI {
+  id: number;
+  showtime_date: string;
+  showtime_time: string;
+  price: string;
+  available_seats: number;
+  status: string;
+  theater: Theater;
+}
+
 export interface MovieFromAPI {
   id: number;
   title: string;
@@ -24,6 +40,7 @@ export interface MovieFromAPI {
   age_rating: string;
   status: 'coming_soon' | 'now_showing' | 'ended';
   genres: Genre[];
+  showtimes?: ShowtimeFromAPI[];
   created_at?: string;
   updated_at?: string;
 }

@@ -1,16 +1,8 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_BASE_URL
-});
-
-api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-        // Gửi token lên để Middleware Backend kiểm tra
-        config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
+    baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+    withCredentials: true // Tự động gửi cookie với mọi request
 });
 
 export default api;

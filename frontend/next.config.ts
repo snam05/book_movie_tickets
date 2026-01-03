@@ -9,7 +9,13 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
-      // Nếu dùng thêm ảnh từ các nguồn khác như google, hãy thêm vào đây
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        port: '',
+        pathname: '/**',
+      },
+      // Nếu dùng thêm ảnh từ các nguồn khác, hãy thêm vào đây
     ],
   },
 };

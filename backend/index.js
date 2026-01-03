@@ -9,7 +9,8 @@ import connectDB from './db.config.js';
 
 // 🎯 IMPORT ROUTES
 import authRoutes from './routes/auth.routes.js'; 
-import movieRoutes from './routes/movie.routes.js'; 
+import movieRoutes from './routes/movie.routes.js';
+import uploadRoutes from './routes/upload.routes.js'; 
 
 // --- CẤU HÌNH BAN ĐẦU ---
 dotenv.config(); // Load biến môi trường từ .env
@@ -36,6 +37,7 @@ const API_PREFIX = '/api/v1'; // Định nghĩa tiền tố API chung
 
 app.use(`${API_PREFIX}/auth`, authRoutes); // Gắn Auth Routes
 app.use(`${API_PREFIX}/movies`, movieRoutes); // Gắn Movie Routes
+app.use(`${API_PREFIX}/upload`, uploadRoutes); // Gắn Upload Routes
 
 // 3. Định nghĩa Route đầu tiên (kiểm tra server)
 app.get('/', (req, res) => {

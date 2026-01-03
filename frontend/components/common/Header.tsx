@@ -82,7 +82,7 @@ export function Header() {
     setUser(null);
 
     // 4. Đẩy người dùng về trang chủ hoặc trang đăng nhập
-    router.push('/auth/login');
+    router.push('/auth/signin');
     
     // 5. Refresh lại để Middleware Next.js nhận diện trạng thái "không token"
     router.refresh();
@@ -153,8 +153,8 @@ export function Header() {
                         </DropdownMenu>
                     ) : (
                         <div className="flex items-center gap-2">
-                            <Button variant="ghost" className="text-sm font-bold" asChild><Link href="/auth/login">ĐĂNG NHẬP</Link></Button>
-                            <Button className="bg-red-600 hover:bg-red-700 text-sm font-bold px-6" asChild><Link href="/auth/register">ĐĂNG KÝ</Link></Button>
+                            <Button variant="ghost" className="text-sm font-bold" asChild><Link href="/auth/signin">ĐĂNG NHẬP</Link></Button>
+                            <Button className="bg-red-600 hover:bg-red-700 text-sm font-bold px-6" asChild><Link href="/auth/signup">ĐĂNG KÝ</Link></Button>
                         </div>
                     )}
                 </div>

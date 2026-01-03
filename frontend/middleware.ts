@@ -7,7 +7,7 @@ export async function middleware(request: NextRequest) {
 
     // 1. Định nghĩa các nhóm đường dẫn
     const protectedPaths = ['/profile', '/admin', '/booking', '/checkout'];
-    const authPaths = ['/auth/login', '/auth/register'];
+    const authPaths = ['/auth/signin', '/auth/signup'];
     
     const isProtected = protectedPaths.some(path => pathname.startsWith(path));
     const isAuthPage = authPaths.some(path => pathname.startsWith(path));
@@ -20,7 +20,7 @@ export async function middleware(request: NextRequest) {
     // 3. Xử lý các trang yêu cầu đăng nhập
     if (isProtected) {
         if (!token) {
-            return NextResponse.redirect(new URL('/auth/login', request.url));
+            return NextResponse.redirect(new URL('/auth/signin', request.url));
         }
 
         try {
@@ -35,14 +35,14 @@ export async function middleware(request: NextRequest) {
             });
 
             if (!response.ok) {
-                const res = NextResponse.redirect(new URL('/auth/login', request.url));
+                const res = NextResponse.redirect(new URL('/auth/signin', request.url));
                 res.cookies.delete('token');
                 return res;
             }
-        } catch (error) {
+        } catch {
             // Nếu server backend sập, tạm thời cho qua hoặc chặn tùy bạn
             // Ở đây chọn redirect để an toàn
-            return NextResponse.redirect(new URL('/auth/login', request.url));
+            return NextResponse.redirect(new URL('/auth/signin', request.url));
         }
     }
 

@@ -16,11 +16,11 @@ import { IRegisterForm, IAPIResponse } from '@/types/auth';
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL + '/auth'; 
 
-interface RegisterFormProps extends React.ComponentProps<"div"> {
-    onRegisterSuccess?: () => void;
+interface SignUpFormProps extends React.ComponentProps<"div"> {
+    onSignUpSuccess?: () => void;
 }
 
-export function RegisterForm({ className, onRegisterSuccess, ...props }: RegisterFormProps) {
+export function SignUpForm({ className, onSignUpSuccess, ...props }: SignUpFormProps) {
     const router = useRouter();
     const [formData, setFormData] = useState<IRegisterForm>({
         full_name: '',
@@ -83,8 +83,8 @@ export function RegisterForm({ className, onRegisterSuccess, ...props }: Registe
                 window.dispatchEvent(new Event('authChange')); 
 
                 // Gọi callback nếu có
-                if (onRegisterSuccess) {
-                    onRegisterSuccess();
+                if (onSignUpSuccess) {
+                    onSignUpSuccess();
                 }
 
                 // Chuyển hướng về trang chủ
@@ -175,7 +175,7 @@ export function RegisterForm({ className, onRegisterSuccess, ...props }: Registe
 
                             <div className="text-center text-sm">
                                 Đã có tài khoản?{" "}
-                                <Link href="/auth/login" className="font-bold text-red-600 underline underline-offset-4">
+                                <Link href="/auth/signin" className="font-bold text-red-600 underline underline-offset-4">
                                     Đăng nhập
                                 </Link>
                             </div>

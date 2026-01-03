@@ -16,11 +16,11 @@ import { ILoginForm, IAPIResponse } from '@/types/auth';
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL + '/auth';
 
-interface LoginFormProps extends React.ComponentProps<"div"> {
-    onLoginSuccess: () => void;
+interface SignInFormProps extends React.ComponentProps<"div"> {
+    onSignInSuccess: () => void;
 }
 
-export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProps) {
+export function SignInForm({ className, onSignInSuccess, ...props }: SignInFormProps) {
     const router = useRouter();
     const [formData, setFormData] = useState<ILoginForm>({ email: '', matKhau: '' });
     const [loading, setLoading] = useState(false);
@@ -52,9 +52,9 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
                 // 3. Thông báo Header cập nhật
                 window.dispatchEvent(new Event('authChange')); 
                 
-                // 4. CHUYỂN HƯỚNG: Sử dụng router.push phối hợp với onLoginSuccess
+                // 4. CHUYỂN HƯỚNG: Sử dụng router.push phối hợp với onSignInSuccess
                 // Gọi callback từ props trước nếu có
-                onLoginSuccess();
+                onSignInSuccess();
                 
                 // Chuyển hướng về trang chủ
                 router.push('/');
@@ -109,7 +109,7 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
                                 {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
                             </Button>
                             <div className="text-center text-sm">
-                                Chưa có tài khoản? <Link href="/auth/register" className="font-bold text-red-600 underline">Đăng ký</Link>
+                                Chưa có tài khoản? <Link href="/auth/signup" className="font-bold text-red-600 underline">Đăng ký</Link>
                             </div>
                         </div>
                     </form>

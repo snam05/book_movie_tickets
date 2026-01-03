@@ -221,17 +221,12 @@ BEGIN
     END IF;
 END$$
 
--- Trigger: Đảm bảo mỗi user chỉ có 1 session active
--- ⚠️  Trigger này đã bị xóa vì gây lỗi MySQL:
+-- ⚠️  LƯU Ý VỀ SESSION TRIGGER:
+-- Trigger before_session_insert (đảm bảo mỗi user chỉ có 1 session active) đã bị xóa vì gây lỗi MySQL:
 -- "Can't update table 'sessions' in stored function/trigger because it is already used by statement"
--- Logic xóa session cũ đã được chuyển vào code trong services/session.service.js (createSession function)
 -- 
--- CREATE TRIGGER before_session_insert
--- BEFORE INSERT ON sessions
--- FOR EACH ROW
--- BEGIN
---     DELETE FROM sessions WHERE user_id = NEW.user_id;
--- END$$
+-- ✅ GIẢI PHÁP: Logic xóa session cũ đã được chuyển vào code trong services/session.service.js (createSession function)
+-- Khi tạo session mới, code sẽ tự động xóa các session cũ của user trước.
 
 DELIMITER ;
 

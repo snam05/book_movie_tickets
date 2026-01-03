@@ -97,9 +97,6 @@ export function Header() {
         };
     }, [syncAuth]);
 
-    // Tránh lỗi Hydration Mismatch bằng cách không render phần User khi chưa mount
-    if (!mounted) return <header className="bg-white shadow-sm sticky top-0 z-50 h-20 border-b" />;
-
     return (
         <header className="bg-white shadow-sm sticky top-0 z-50 border-b">
             <div className="max-w-7xl mx-auto px-6 lg:px-8 h-20 flex items-center justify-between">
@@ -113,7 +110,13 @@ export function Header() {
                 </div>
 
                 <div className="flex items-center space-x-4 flex-shrink-0">
-                    {user ? (
+                    {!mounted ? (
+                        // Hiển thị nút đăng nhập/đăng ký trong lúc đợi mounted
+                        <div className="flex items-center gap-2">
+                            <Button variant="ghost" className="text-sm font-bold text-gray-900 hover:text-red-600" asChild><Link href="/auth/signin">ĐĂNG NHẬP</Link></Button>
+                            <Button className="bg-red-600 hover:bg-red-700 text-white text-sm font-bold px-6" asChild><Link href="/auth/signup">ĐĂNG KÝ</Link></Button>
+                        </div>
+                    ) : user ? (
                         <DropdownMenu modal={false}>
                             <DropdownMenuTrigger asChild>
                                 <div className="flex items-center gap-3 cursor-pointer group">
@@ -147,8 +150,8 @@ export function Header() {
                         </DropdownMenu>
                     ) : (
                         <div className="flex items-center gap-2">
-                            <Button variant="ghost" className="text-sm font-bold" asChild><Link href="/auth/signin">ĐĂNG NHẬP</Link></Button>
-                            <Button className="bg-red-600 hover:bg-red-700 text-sm font-bold px-6" asChild><Link href="/auth/signup">ĐĂNG KÝ</Link></Button>
+                            <Button variant="ghost" className="text-sm font-bold text-gray-900 hover:text-red-600" asChild><Link href="/auth/signin">ĐĂNG NHẬP</Link></Button>
+                            <Button className="bg-red-600 hover:bg-red-700 text-white text-sm font-bold px-6" asChild><Link href="/auth/signup">ĐĂNG KÝ</Link></Button>
                         </div>
                     )}
                 </div>

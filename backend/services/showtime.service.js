@@ -19,13 +19,18 @@ export const getShowtimeById = async (showtimeId) => {
                 {
                     model: Theater,
                     as: 'theater',
-                    attributes: ['id', 'name', 'theater_type', 'total_seats', 'seat_map']
+                    attributes: ['id', 'name', 'theater_type', 'total_seats', 'seat_map', 'status']
                 }
             ]
         });
 
         if (!showtime) {
             throw new Error('Không tìm thấy suất chiếu');
+        }
+
+        // Kiểm tra nếu rạp đang bảo trì
+        if (showtime.theater.status === 'maintenance') {
+            throw new Error('Rạp chiếu đang trong quá trình bảo trì');
         }
 
         // Lấy tất cả ghế đã đặt cho suất chiếu này (chỉ booking pending/confirmed)

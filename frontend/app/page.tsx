@@ -3,7 +3,15 @@
 import { MovieList } from '@/components/movies/MovieList';
 import { getNowShowingMovies, getComingSoonMovies, convertToMovieType } from '@/lib/api/movies';
 
-export default async function HomePage() {
+interface HomePageProps {
+  searchParams: Promise<{ search?: string }>;
+}
+
+export default async function HomePage({ searchParams }: HomePageProps) {
+  // Await searchParams first
+  const params = await searchParams;
+  const searchTerm = params.search || '';
+
   // Fetch data từ API
   const nowShowingMovies = await getNowShowingMovies();
   const comingSoonMovies = await getComingSoonMovies();
@@ -18,6 +26,7 @@ export default async function HomePage() {
       <MovieList 
         nowShowingMovies={nowShowingData}
         comingSoonMovies={comingSoonData}
+        searchTerm={searchTerm}
       />
     </div>
   );

@@ -35,6 +35,7 @@ export interface IBooking {
             name: string;
             theater_type: string;
             total_seats: number;
+            status: 'active' | 'maintenance';
         };
     };
     seats: IBookedSeat[];

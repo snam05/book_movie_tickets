@@ -26,7 +26,7 @@ export const getUserBookings = async (userId) => {
                         {
                             model: Theater,
                             as: 'theater',
-                            attributes: ['id', 'name', 'theater_type', 'total_seats']
+                            attributes: ['id', 'name', 'theater_type', 'total_seats', 'status']
                         }
                     ]
                 },

@@ -8,7 +8,7 @@ import { getMyBookings, cancelBooking } from '@/lib/api/bookings';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, MapPin, Ticket, X, Loader2 } from 'lucide-react';
+import { Calendar, Clock, MapPin, Ticket, X, Loader2, AlertTriangle } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
@@ -176,9 +176,16 @@ export default function MyBookingsPage() {
                                                         <p className="font-semibold text-gray-900">
                                                             {booking.showtime.theater.name}
                                                         </p>
-                                                        <Badge variant="outline" className="mt-1 text-xs">
-                                                            {booking.showtime.theater.theater_type.toUpperCase()}
-                                                        </Badge>
+                                                        <div className="flex items-center gap-2 mt-1">
+                                                            <Badge variant="outline" className="text-xs">
+                                                                {booking.showtime.theater.theater_type.toUpperCase()}
+                                                            </Badge>
+                                                            {booking.showtime.theater.status === 'maintenance' && (
+                                                                <Badge className="bg-orange-100 text-orange-800 border-orange-300 text-xs">
+                                                                    Bảo trì
+                                                                </Badge>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
 
@@ -198,6 +205,23 @@ export default function MyBookingsPage() {
                                                     </div>
                                                 </div>
                                             </div>
+
+                                            {/* Theater Maintenance Warning */}
+                                            {booking.showtime.theater.status === 'maintenance' && (
+                                                <div className="mb-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                                                    <div className="flex items-start gap-3">
+                                                        <AlertTriangle className="h-5 w-5 text-orange-600 flex-shrink-0 mt-0.5" />
+                                                        <div>
+                                                            <p className="font-semibold text-orange-900 mb-1">
+                                                                Rạp đang bảo trì
+                                                            </p>
+                                                            <p className="text-sm text-orange-800">
+                                                                Rạp chiếu đang trong quá trình bảo trì. Vui lòng liên hệ nhân viên để được hỗ trợ về vé đã đặt.
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
 
                                             {/* Seats */}
                                             <div className="mb-4">

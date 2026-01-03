@@ -10,9 +10,12 @@ import connectDB from './db.config.js';
 // 🎯 IMPORT ROUTES
 import authRoutes from './routes/auth.routes.js'; 
 import movieRoutes from './routes/movie.routes.js';
+import genreRoutes from './routes/genre.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
 import showtimeRoutes from './routes/showtime.routes.js';
-import bookingRoutes from './routes/booking.routes.js'; 
+import bookingRoutes from './routes/booking.routes.js';
+import theaterRoutes from './routes/theater.routes.js';
+import adminUserRoutes from './routes/admin.user.routes.js'; 
 
 // --- CẤU HÌNH BAN ĐẦU ---
 dotenv.config(); // Load biến môi trường từ .env
@@ -23,7 +26,7 @@ const PORT = process.env.PORT || 8080;
 // Cấu hình CORS (cho phép tất cả hoặc tùy chỉnh)
 app.use(cors({
     origin: 'http://localhost:3000', // Frontend URL, cần cụ thể để cookie hoạt động
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true // Cho phép gửi cookie
 }));
@@ -39,9 +42,12 @@ const API_PREFIX = '/api/v1'; // Định nghĩa tiền tố API chung
 
 app.use(`${API_PREFIX}/auth`, authRoutes); // Gắn Auth Routes
 app.use(`${API_PREFIX}/movies`, movieRoutes); // Gắn Movie Routes
+app.use(`${API_PREFIX}/genres`, genreRoutes); // Gắn Genre Routes
 app.use(`${API_PREFIX}/upload`, uploadRoutes); // Gắn Upload Routes
 app.use(`${API_PREFIX}/showtimes`, showtimeRoutes); // Gắn Showtime Routes
 app.use(`${API_PREFIX}/bookings`, bookingRoutes); // Gắn Booking Routes
+app.use(`${API_PREFIX}/theaters`, theaterRoutes); // Gắn Theater Routes
+app.use(`${API_PREFIX}/admin/users`, adminUserRoutes); // Gắn Admin User Routes
 
 // 3. Định nghĩa Route đầu tiên (kiểm tra server)
 app.get('/', (req, res) => {

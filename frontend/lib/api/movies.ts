@@ -104,6 +104,56 @@ export const getMovieById = async (id: number): Promise<MovieFromAPI> => {
 };
 
 /**
+ * Tạo phim mới (Admin only)
+ */
+export const createMovie = async (formData: FormData): Promise<MovieFromAPI> => {
+  try {
+    const response = await axios.post<{ message: string; data: MovieFromAPI }>(`${API_URL}/movies`, formData, {
+      withCredentials: true,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data.data;
+  } catch (error) {
+    console.error('Error creating movie:', error);
+    throw error;
+  }
+};
+
+/**
+ * Cập nhật phim (Admin only)
+ */
+export const updateMovie = async (id: number, formData: FormData): Promise<MovieFromAPI> => {
+  try {
+    const response = await axios.put<{ message: string; data: MovieFromAPI }>(`${API_URL}/movies/${id}`, formData, {
+      withCredentials: true,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data.data;
+  } catch (error) {
+    console.error(`Error updating movie ${id}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Xóa phim (Admin only)
+ */
+export const deleteMovie = async (id: number): Promise<void> => {
+  try {
+    await axios.delete(`${API_URL}/movies/${id}`, {
+      withCredentials: true,
+    });
+  } catch (error) {
+    console.error(`Error deleting movie ${id}:`, error);
+    throw error;
+  }
+};
+
+/**
  * Helper: Convert MovieFromAPI to Movie type (for compatibility)
  */
 export const convertToMovieType = (apiMovie: MovieFromAPI) => {

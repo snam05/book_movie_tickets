@@ -37,6 +37,7 @@ export function Header() {
 
     const [user, setUser] = useState<IUser | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [searchInput, setSearchInput] = useState('');
 
     // Hàm lấy User từ Backend qua /auth/verify
     const fetchUser = useCallback(async (): Promise<IUser | null> => {
@@ -95,6 +96,23 @@ export function Header() {
         })();
     }, [mounted, fetchUser]);
 
+    const handleSearch = useCallback(() => {
+        const trimmedSearch = searchInput.trim();
+        if (trimmedSearch) {
+            // Navigate to home page with search query
+            router.push(`/?search=${encodeURIComponent(trimmedSearch)}`);
+        } else {
+            // Clear search if empty
+            router.push('/');
+        }
+    }, [searchInput, router]);
+
+    const handleSearchKeyPress = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    }, [handleSearch]);
+
     const handleLogout = useCallback(async () => {
         try {
             // Gọi backend để xóa session
@@ -142,8 +160,15 @@ export function Header() {
                 </Link>
 
                 <div className="hidden md:flex items-center bg-gray-100 rounded-full px-5 py-2.5 w-full max-w-md mx-6 lg:mx-10">
-                    <Search className="h-4 w-4 text-gray-400 mr-2" />
-                    <input type="text" placeholder="Tìm phim..." className="bg-transparent border-none focus:outline-none text-sm w-full" />
+                    <Search className="h-4 w-4 text-gray-400 mr-2 cursor-pointer" onClick={handleSearch} />
+                    <input 
+                        type="text" 
+                        placeholder="Tìm phim..." 
+                        className="bg-transparent border-none focus:outline-none text-sm w-full text-gray-900 placeholder:text-gray-500"
+                        value={searchInput}
+                        onChange={(e) => setSearchInput(e.target.value)}
+                        onKeyPress={handleSearchKeyPress}
+                    />
                 </div>
 
                 <div className="flex items-center space-x-4 flex-shrink-0">
@@ -179,7 +204,12 @@ export function Header() {
                                     </DropdownMenuLabel>
                                     <DropdownMenuSeparator />
                                     {user.role === 'admin' && (
-                                        <DropdownMenuItem className="text-amber-600 font-semibold"><ShieldCheck className="mr-2 h-4 w-4" /> Admin</DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                            <Link href="/admin" className="w-full flex text-amber-600 font-semibold">
+                                                <ShieldCheck className="mr-2 h-4 w-4" /> 
+                                                Trang Quản Trị
+                                            </Link>
+                                        </DropdownMenuItem>
                                     )}
                                     <DropdownMenuItem asChild><Link href="/profile" className="w-full flex"><Settings className="mr-2 h-4 w-4" /> Hồ sơ</Link></DropdownMenuItem>
                                     <DropdownMenuItem asChild><Link href="/my-bookings" className="w-full flex"><Ticket className="mr-2 h-4 w-4" /> Vé của tôi</Link></DropdownMenuItem>
@@ -217,7 +247,12 @@ export function Header() {
                                 </DropdownMenuLabel>
                                 <DropdownMenuSeparator />
                                 {user.role === 'admin' && (
-                                    <DropdownMenuItem className="text-amber-600 font-semibold"><ShieldCheck className="mr-2 h-4 w-4" /> Admin</DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/admin" className="w-full flex text-amber-600 font-semibold">
+                                            <ShieldCheck className="mr-2 h-4 w-4" /> 
+                                            Admin Panel
+                                        </Link>
+                                    </DropdownMenuItem>
                                 )}
                                 <DropdownMenuItem asChild><Link href="/profile" className="w-full flex"><Settings className="mr-2 h-4 w-4" /> Hồ sơ</Link></DropdownMenuItem>
                                 <DropdownMenuItem asChild><Link href="/my-bookings" className="w-full flex"><Ticket className="mr-2 h-4 w-4" /> Vé của tôi</Link></DropdownMenuItem>

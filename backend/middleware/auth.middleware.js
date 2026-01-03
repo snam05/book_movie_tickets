@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { verifySession } from '../services/session.service.js';
+import User from '../models/User.model.js';
 
 /**
  * Middleware xác thực Session Token từ Cookie
@@ -22,12 +23,25 @@ export const verifyToken = async (req, res, next) => {
         const sessionResult = await verifySession(sessionToken);
         
         if (sessionResult.valid) {
-            // Lấy thông tin user từ session
+            // Lấy thông tin user từ database để có role
+            const user = await User.findByPk(sessionResult.userId);
+            
+            if (!user) {
+                console.log("\x1b[31m%s\x1b[0m", `[Auth Middleware] User không tồn tại`);
+                res.clearCookie('session_token');
+                return res.status(401).json({ 
+                    message: "Người dùng không tồn tại!" 
+                });
+            }
+            
+            // Lưu thông tin user vào request
             req.user = {
-                id: sessionResult.userId,
+                id: user.id,
+                email: user.email,
+                role: user.role,
                 sessionId: sessionResult.session.session_id
             };
-            console.log("\x1b[32m%s\x1b[0m", `[Auth Middleware] Session Valid: User ID ${sessionResult.userId}`);
+            console.log("\x1b[32m%s\x1b[0m", `[Auth Middleware] Session Valid: User ID ${user.id}, Role: ${user.role}`);
             return next();
         } else {
             console.log("\x1b[31m%s\x1b[0m", `[Auth Middleware] Session Invalid: ${sessionResult.message}`);

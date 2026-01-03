@@ -28,6 +28,12 @@ export const getShowtime = async (req, res) => {
             });
         }
 
+        if (error.message === 'Rạp chiếu đang trong quá trình bảo trì') {
+            return res.status(403).json({
+                message: error.message
+            });
+        }
+
         console.error('ERROR getting showtime:', error);
         return res.status(500).json({
             message: 'Đã xảy ra lỗi khi lấy thông tin suất chiếu',

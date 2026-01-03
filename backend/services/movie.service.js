@@ -72,7 +72,10 @@ export const getMovieById = async (movieId) => {
                     {
                         model: Theater,
                         as: 'theater',
-                        attributes: ['id', 'name', 'theater_type']
+                        attributes: ['id', 'name', 'theater_type'],
+                        where: {
+                            status: 'active' // Chỉ lấy rạp đang hoạt động
+                        }
                     }
                 ],
                 where: {

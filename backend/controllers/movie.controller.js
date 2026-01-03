@@ -121,7 +121,7 @@ export const getComingSoon = async (req, res) => {
  */
 export const createNewMovie = async (req, res) => {
     try {
-        const movieData = req.body;
+        let movieData = req.body;
         const posterBuffer = req.file ? req.file.buffer : null;
 
         // Validate dữ liệu cơ bản
@@ -129,6 +129,11 @@ export const createNewMovie = async (req, res) => {
             return res.status(400).json({
                 message: 'Thiếu thông tin bắt buộc (title, duration)'
             });
+        }
+
+        // Parse genres nếu là string JSON
+        if (movieData.genres && typeof movieData.genres === 'string') {
+            movieData.genres = JSON.parse(movieData.genres);
         }
 
         const movie = await createMovie(movieData, posterBuffer);
@@ -152,13 +157,18 @@ export const createNewMovie = async (req, res) => {
 export const updateExistingMovie = async (req, res) => {
     try {
         const movieId = req.params.id;
-        const movieData = req.body;
+        let movieData = req.body;
         const posterBuffer = req.file ? req.file.buffer : null;
 
         if (!movieId) {
             return res.status(400).json({
                 message: 'Thiếu ID phim'
             });
+        }
+
+        // Parse genres nếu là string JSON
+        if (movieData.genres && typeof movieData.genres === 'string') {
+            movieData.genres = JSON.parse(movieData.genres);
         }
 
         const movie = await updateMovie(movieId, movieData, posterBuffer);

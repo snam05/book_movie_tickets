@@ -6,7 +6,7 @@ export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
     // 1. Định nghĩa các nhóm đường dẫn
-    const protectedPaths = ['/profile', '/admin', '/booking', '/checkout'];
+    const protectedPaths = ['/profile', '/admin', '/booking', '/checkout', '/my-bookings'];
     const authPaths = ['/auth/signin', '/auth/signup'];
     
     const isProtected = protectedPaths.some(path => pathname.startsWith(path));

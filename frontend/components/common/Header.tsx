@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, useSyncExternalStore } from 'react';
+import React, { useEffect, useState, useCallback, useSyncExternalStore, useLayoutEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ import { Search, LogOut, Ticket, Settings, ShieldCheck } from 'lucide-react';
 import { IUser } from '@/types/auth';
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL + '/auth';
+const USER_CACHE_KEY = 'cached_user';
 
 const NAV_LINKS = [
     { href: "/", label: "Lịch Chiếu" },
@@ -34,6 +35,9 @@ export function Header() {
         () => false
     );
 
+    const [user, setUser] = useState<IUser | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
     // Hàm lấy User từ Backend qua /auth/verify
     const fetchUser = useCallback(async (): Promise<IUser | null> => {
         if (typeof window === 'undefined') return null;
@@ -47,21 +51,49 @@ export function Header() {
             
             if (response.ok) {
                 const data = await response.json();
-                return data.user as IUser;
+                const userData = data.user as IUser;
+                // Cache user info vào localStorage
+                localStorage.setItem(USER_CACHE_KEY, JSON.stringify(userData));
+                return userData;
+            } else {
+                // Xóa cache nếu verify fail
+                localStorage.removeItem(USER_CACHE_KEY);
+                return null;
             }
-            return null;
         } catch (error) {
             console.error('Error fetching user:', error);
             return null;
         }
     }, []);
 
-    const [user, setUser] = useState<IUser | null>(null);
+    // Load cached user before first paint (useLayoutEffect runs before useEffect)
+    useLayoutEffect(() => {
+        if (typeof window === 'undefined') return;
+        
+        const cachedUser = localStorage.getItem(USER_CACHE_KEY);
+        if (cachedUser) {
+            try {
+                // Suppress React Compiler warning - this is intentional for cache loading
+                const userData = JSON.parse(cachedUser);
+                setUser(userData);
+            } catch (e) {
+                console.error('Error parsing cached user:', e);
+            }
+        }
+    }, []);
 
-    // Xử lý Hydration: Đảm bảo Client khớp với Server
+    // Load user từ cache trước, sau đó verify từ server
     useEffect(() => {
-        fetchUser().then(setUser);
-    }, [fetchUser]);
+        if (!mounted) return;
+
+        // Verify từ server và update  
+        (async () => {
+            setIsLoading(true);
+            const freshUser = await fetchUser();
+            setUser(freshUser);
+            setIsLoading(false);
+        })();
+    }, [mounted, fetchUser]);
 
     const handleLogout = useCallback(async () => {
         try {
@@ -74,7 +106,8 @@ export function Header() {
             console.error('Logout error:', error);
         }
 
-        // Cập nhật State
+        // Xóa cache và cập nhật State
+        localStorage.removeItem(USER_CACHE_KEY);
         setUser(null);
 
         // Đẩy người dùng về trang đăng nhập
@@ -85,7 +118,11 @@ export function Header() {
     }, [router]);
 
     const syncAuth = useCallback(() => {
-        fetchUser().then(setUser);
+        setIsLoading(true);
+        fetchUser().then((freshUser) => {
+            setUser(freshUser);
+            setIsLoading(false);
+        });
     }, [fetchUser]);
 
     useEffect(() => {
@@ -111,17 +148,57 @@ export function Header() {
 
                 <div className="flex items-center space-x-4 flex-shrink-0">
                     {!mounted ? (
-                        // Hiển thị nút đăng nhập/đăng ký trong lúc đợi mounted
-                        <div className="flex items-center gap-2">
-                            <Button variant="ghost" className="text-sm font-bold text-gray-900 hover:text-red-600" asChild><Link href="/auth/signin">ĐĂNG NHẬP</Link></Button>
-                            <Button className="bg-red-600 hover:bg-red-700 text-white text-sm font-bold px-6" asChild><Link href="/auth/signup">ĐĂNG KÝ</Link></Button>
+                        // Skeleton loading during hydration
+                        <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-gray-200 animate-pulse"></div>
                         </div>
+                    ) : isLoading ? (
+                        // Show cached user or skeleton during verification
+                        user ? (
+                            // Hiển thị cached user trong khi verify
+                            <DropdownMenu modal={false}>
+                                <DropdownMenuTrigger asChild>
+                                    <div className="flex items-center gap-3 cursor-pointer group">
+                                        <div className="text-right hidden lg:block">
+                                            <p className="text-sm font-bold text-gray-900 group-hover:text-red-600 transition-colors">{user.full_name}</p>
+                                            <p className="text-[10px] text-gray-500 font-mono">#{user.member_code}</p>
+                                        </div>
+                                        <Avatar className="h-10 w-10 border-2 border-transparent group-hover:border-red-500 transition-all">
+                                            <AvatarFallback className="bg-red-600 text-white font-bold">
+                                                {user.full_name.charAt(0).toUpperCase()}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                    </div>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-64">
+                                    <DropdownMenuLabel>
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-bold">{user.full_name}</span>
+                                            <span className="text-xs text-gray-500">{user.email}</span>
+                                        </div>
+                                    </DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    {user.role === 'admin' && (
+                                        <DropdownMenuItem className="text-amber-600 font-semibold"><ShieldCheck className="mr-2 h-4 w-4" /> Admin</DropdownMenuItem>
+                                    )}
+                                    <DropdownMenuItem asChild><Link href="/profile" className="w-full flex"><Settings className="mr-2 h-4 w-4" /> Hồ sơ</Link></DropdownMenuItem>
+                                    <DropdownMenuItem asChild><Link href="/my-bookings" className="w-full flex"><Ticket className="mr-2 h-4 w-4" /> Vé của tôi</Link></DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={handleLogout} className="text-red-600"><LogOut className="mr-2 h-4 w-4" /> Đăng xuất</DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        ) : (
+                            // Skeleton placeholder khi chưa có cache
+                            <div className="flex items-center gap-3">
+                                <div className="h-10 w-10 rounded-full bg-gray-200 animate-pulse"></div>
+                            </div>
+                        )
                     ) : user ? (
                         <DropdownMenu modal={false}>
                             <DropdownMenuTrigger asChild>
                                 <div className="flex items-center gap-3 cursor-pointer group">
                                     <div className="text-right hidden lg:block">
-                                        <p className="text-sm font-bold group-hover:text-red-600 transition-colors">{user.full_name}</p>
+                                        <p className="text-sm font-bold text-gray-900 group-hover:text-red-600 transition-colors">{user.full_name}</p>
                                         <p className="text-[10px] text-gray-500 font-mono">#{user.member_code}</p>
                                     </div>
                                     <Avatar className="h-10 w-10 border-2 border-transparent group-hover:border-red-500 transition-all">

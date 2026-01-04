@@ -63,8 +63,7 @@ export default function AdminTheatersPage() {
     
     const term = searchTerm.toLowerCase();
     const filtered = theaters.filter(theater => 
-      theater.name.toLowerCase().includes(term) ||
-      theater.id.toString().includes(term)
+      theater.name.toLowerCase().includes(term)
     );
     setFilteredTheaters(filtered);
   };
@@ -163,7 +162,7 @@ export default function AdminTheatersPage() {
         <div className="flex gap-2">
           <Input
             type="text"
-            placeholder="Tìm rạp theo tên, ID..."
+            placeholder="Tìm rạp theo tên..."
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
@@ -186,7 +185,6 @@ export default function AdminTheatersPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>ID</TableHead>
               <TableHead>Tên rạp</TableHead>
               <TableHead>Loại rạp</TableHead>
               <TableHead>Số ghế</TableHead>
@@ -204,7 +202,6 @@ export default function AdminTheatersPage() {
             ) : (
               filteredTheaters.map((theater) => (
                 <TableRow key={theater.id}>
-                  <TableCell className="font-medium">{theater.id}</TableCell>
                   <TableCell className="font-semibold">{theater.name}</TableCell>
                   <TableCell>
                     <Badge variant="outline">{getTheaterTypeLabel(theater.theater_type)}</Badge>

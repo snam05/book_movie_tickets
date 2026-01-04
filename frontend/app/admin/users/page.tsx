@@ -452,7 +452,6 @@ export default function AdminUsersPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>ID</TableHead>
               <TableHead>Họ tên</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>CCCD</TableHead>
@@ -472,7 +471,6 @@ export default function AdminUsersPage() {
             ) : (
               users.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.id}</TableCell>
                   <TableCell className="font-semibold">{user.full_name}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>{user.cccd_number}</TableCell>

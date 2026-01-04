@@ -61,8 +61,7 @@ export default function AdminShowtimesPage() {
     const term = searchTerm.toLowerCase();
     const filtered = showtimes.filter(showtime => 
       showtime.movie?.title.toLowerCase().includes(term) ||
-      showtime.theater?.name.toLowerCase().includes(term) ||
-      showtime.id.toString().includes(term)
+      showtime.theater?.name.toLowerCase().includes(term)
     );
     setFilteredShowtimes(filtered);
   };
@@ -164,7 +163,6 @@ export default function AdminShowtimesPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>ID</TableHead>
               <TableHead>Phim</TableHead>
               <TableHead>Rạp</TableHead>
               <TableHead>Ngày chiếu</TableHead>
@@ -185,7 +183,6 @@ export default function AdminShowtimesPage() {
             ) : (
               filteredShowtimes.map((showtime) => (
                 <TableRow key={showtime.id}>
-                  <TableCell className="font-medium">{showtime.id}</TableCell>
                   <TableCell className="font-semibold max-w-[200px] break-words whitespace-normal">
                     {showtime.movie?.title || 'N/A'}
                   </TableCell>

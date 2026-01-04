@@ -15,7 +15,8 @@ import uploadRoutes from './routes/upload.routes.js';
 import showtimeRoutes from './routes/showtime.routes.js';
 import bookingRoutes from './routes/booking.routes.js';
 import theaterRoutes from './routes/theater.routes.js';
-import adminUserRoutes from './routes/admin.user.routes.js'; 
+import adminUserRoutes from './routes/admin.user.routes.js';
+import adminBookingRoutes from './routes/admin.booking.routes.js'; 
 
 // --- CẤU HÌNH BAN ĐẦU ---
 dotenv.config(); // Load biến môi trường từ .env
@@ -48,6 +49,7 @@ app.use(`${API_PREFIX}/showtimes`, showtimeRoutes); // Gắn Showtime Routes
 app.use(`${API_PREFIX}/bookings`, bookingRoutes); // Gắn Booking Routes
 app.use(`${API_PREFIX}/theaters`, theaterRoutes); // Gắn Theater Routes
 app.use(`${API_PREFIX}/admin/users`, adminUserRoutes); // Gắn Admin User Routes
+app.use(`${API_PREFIX}/admin/bookings`, adminBookingRoutes); // Gắn Admin Booking Routes
 
 // 3. Định nghĩa Route đầu tiên (kiểm tra server)
 app.get('/', (req, res) => {

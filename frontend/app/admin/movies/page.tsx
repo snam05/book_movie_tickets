@@ -150,7 +150,6 @@ export default function AdminMoviesPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>ID</TableHead>
               <TableHead>Tên phim</TableHead>
               <TableHead>Thời lượng</TableHead>
               <TableHead>Đánh giá</TableHead>
@@ -168,7 +167,6 @@ export default function AdminMoviesPage() {
             ) : (
               movies.map((movie) => (
                 <TableRow key={movie.id}>
-                  <TableCell className="font-medium">{movie.id}</TableCell>
                   <TableCell className="font-semibold max-w-[200px] break-words whitespace-normal">{movie.title}</TableCell>
                   <TableCell>{movie.duration} phút</TableCell>
                   <TableCell>

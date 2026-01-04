@@ -20,14 +20,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, Power, PowerOff } from 'lucide-react';
+import { Plus, Pencil, Trash2, Power, PowerOff, Search } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Input } from '@/components/ui/input';
 
 export default function AdminTheatersPage() {
   const router = useRouter();
   const [theaters, setTheaters] = useState<Theater[]>([]);
+  const [filteredTheaters, setFilteredTheaters] = useState<Theater[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [theaterToDelete, setTheaterToDelete] = useState<Theater | null>(null);
@@ -43,12 +46,27 @@ export default function AdminTheatersPage() {
       setLoading(true);
       const data = await getAllTheaters();
       setTheaters(data);
+      setFilteredTheaters(data);
     } catch (error) {
       console.error('Error loading theaters:', error);
       setErrorDialog({ open: true, message: 'Lỗi khi tải danh sách rạp chiếu' });
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSearch = () => {
+    if (!searchTerm.trim()) {
+      setFilteredTheaters(theaters);
+      return;
+    }
+    
+    const term = searchTerm.toLowerCase();
+    const filtered = theaters.filter(theater => 
+      theater.name.toLowerCase().includes(term) ||
+      theater.id.toString().includes(term)
+    );
+    setFilteredTheaters(filtered);
   };
 
   const handleDelete = async () => {
@@ -140,6 +158,29 @@ export default function AdminTheatersPage() {
         </Button>
       </div>
 
+      {/* Search */}
+      <div className="bg-white rounded-lg shadow p-4">
+        <div className="flex gap-2">
+          <Input
+            type="text"
+            placeholder="Tìm rạp theo tên, ID..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              if (!e.target.value.trim()) {
+                setFilteredTheaters(theaters);
+              }
+            }}
+            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+            className="flex-1"
+          />
+          <Button onClick={handleSearch} className="bg-red-600 hover:bg-red-700">
+            <Search className="mr-2 h-4 w-4" />
+            Tìm kiếm
+          </Button>
+        </div>
+      </div>
+
       {/* Table */}
       <div className="bg-white rounded-lg shadow">
         <Table>
@@ -154,14 +195,14 @@ export default function AdminTheatersPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {theaters.length === 0 ? (
+            {filteredTheaters.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                  Chưa có rạp chiếu nào
+                <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                  {searchTerm ? 'Không tìm thấy rạp chiếu nào' : 'Chưa có rạp chiếu nào'}
                 </TableCell>
               </TableRow>
             ) : (
-              theaters.map((theater) => (
+              filteredTheaters.map((theater) => (
                 <TableRow key={theater.id}>
                   <TableCell className="font-medium">{theater.id}</TableCell>
                   <TableCell className="font-semibold">{theater.name}</TableCell>

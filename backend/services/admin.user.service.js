@@ -51,11 +51,16 @@ export const getUserById = async (userId) => {
 /**
  * Cập nhật role user (Admin only)
  */
-export const updateUserRole = async (userId, role) => {
+export const updateUserRole = async (userId, role, currentUserId) => {
     const user = await User.findByPk(userId);
     
     if (!user) {
         throw new Error('Không tìm thấy người dùng');
+    }
+    
+    // Không cho phép admin tự hạ quyền chính mình
+    if (userId === currentUserId && user.role === 'admin' && role === 'customer') {
+        throw new Error('Không thể hạ quyền của chính bạn');
     }
     
     if (!['customer', 'admin'].includes(role)) {
@@ -77,11 +82,16 @@ export const updateUserRole = async (userId, role) => {
 /**
  * Xóa user (Admin only)
  */
-export const deleteUser = async (userId) => {
+export const deleteUser = async (userId, currentUserId) => {
     const user = await User.findByPk(userId);
     
     if (!user) {
         throw new Error('Không tìm thấy người dùng');
+    }
+    
+    // Không cho phép xóa chính mình
+    if (userId === currentUserId) {
+        throw new Error('Không thể xóa tài khoản của chính bạn');
     }
     
     // Không cho phép xóa admin cuối cùng

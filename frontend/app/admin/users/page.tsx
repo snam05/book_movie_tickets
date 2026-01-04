@@ -47,6 +47,7 @@ import { format } from 'date-fns';
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [stats, setStats] = useState<UserStats | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
@@ -92,7 +93,22 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     loadData();
+    fetchCurrentUser();
   }, []);
+
+  const fetchCurrentUser = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/verify`, {
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setCurrentUserId(data.user.id);
+      }
+    } catch (error) {
+      console.error('Error fetching current user:', error);
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -263,6 +279,10 @@ export default function AdminUsersPage() {
 
   // Delete handlers
   const handleDeleteClick = (user: User) => {
+    if (user.id === currentUserId) {
+      setErrorDialog({ open: true, message: 'Không thể xóa tài khoản của chính bạn' });
+      return;
+    }
     setUserToDelete(user);
     setDeleteDialogOpen(true);
   };
@@ -289,6 +309,10 @@ export default function AdminUsersPage() {
 
   // Role handlers
   const handleToggleRoleClick = (user: User) => {
+    if (user.id === currentUserId && user.role === 'admin') {
+      setErrorDialog({ open: true, message: 'Không thể hạ quyền của chính bạn' });
+      return;
+    }
     setUserToToggleRole(user);
     setRoleDialogOpen(true);
   };
@@ -479,7 +503,8 @@ export default function AdminUsersPage() {
                         size="sm"
                         variant="outline"
                         onClick={() => handleToggleRoleClick(user)}
-                        title="Thay đổi quyền"
+                        disabled={user.id === currentUserId && user.role === 'admin'}
+                        title={user.id === currentUserId && user.role === 'admin' ? 'Không thể hạ quyền chính mình' : 'Thay đổi quyền'}
                       >
                         <Shield className="h-4 w-4" />
                       </Button>
@@ -487,8 +512,9 @@ export default function AdminUsersPage() {
                         size="sm"
                         variant="outline"
                         onClick={() => handleDeleteClick(user)}
-                        className="text-red-600 hover:text-red-700"
-                        title="Xóa người dùng"
+                        disabled={user.id === currentUserId}
+                        className="text-red-600 hover:text-red-700 disabled:text-gray-400 disabled:cursor-not-allowed"
+                        title={user.id === currentUserId ? 'Không thể xóa tài khoản của chính bạn' : 'Xóa người dùng'}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -503,7 +529,7 @@ export default function AdminUsersPage() {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent showCloseButton={false}>
           <DialogHeader>
             <DialogTitle>Xác nhận xóa người dùng</DialogTitle>
             <DialogDescription>
@@ -525,7 +551,7 @@ export default function AdminUsersPage() {
 
       {/* Role Change Confirmation Dialog */}
       <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
-        <DialogContent>
+        <DialogContent showCloseButton={false}>
           <DialogHeader>
             <DialogTitle>Xác nhận thay đổi quyền</DialogTitle>
             <DialogDescription>
@@ -560,7 +586,7 @@ export default function AdminUsersPage() {
 
       {/* Create User Dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" showCloseButton={false}>
           <DialogHeader>
             <DialogTitle>Tạo người dùng mới</DialogTitle>
             <DialogDescription>
@@ -675,7 +701,7 @@ export default function AdminUsersPage() {
 
       {/* Edit User Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" showCloseButton={false}>
           <DialogHeader>
             <DialogTitle>Cập nhật thông tin người dùng</DialogTitle>
             <DialogDescription>
@@ -759,7 +785,7 @@ export default function AdminUsersPage() {
 
       {/* Set Password Dialog */}
       <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
-        <DialogContent>
+        <DialogContent showCloseButton={false}>
           <DialogHeader>
             <DialogTitle>Đặt mật khẩu mới</DialogTitle>
             <DialogDescription>
@@ -801,7 +827,7 @@ export default function AdminUsersPage() {
 
       {/* Error Dialog */}
       <Dialog open={errorDialog.open} onOpenChange={(open) => setErrorDialog({ ...errorDialog, open })}>
-        <DialogContent>
+        <DialogContent showCloseButton={false}>
           <DialogHeader>
             <DialogTitle className="text-red-600">Lỗi</DialogTitle>
             <DialogDescription>{errorDialog.message}</DialogDescription>
@@ -816,7 +842,7 @@ export default function AdminUsersPage() {
 
       {/* Success Dialog */}
       <Dialog open={successDialog.open} onOpenChange={(open) => setSuccessDialog({ ...successDialog, open })}>
-        <DialogContent>
+        <DialogContent showCloseButton={false}>
           <DialogHeader>
             <DialogTitle className="text-green-600">Thành công</DialogTitle>
             <DialogDescription>{successDialog.message}</DialogDescription>

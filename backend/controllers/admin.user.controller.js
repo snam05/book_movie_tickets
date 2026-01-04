@@ -79,7 +79,7 @@ export const updateUserRole = async (req, res) => {
             });
         }
         
-        const updatedUser = await adminUserService.updateUserRole(parseInt(id), role);
+        const updatedUser = await adminUserService.updateUserRole(parseInt(id), role, req.user.id);
         
         res.status(200).json({
             message: 'Cập nhật role người dùng thành công',
@@ -91,7 +91,7 @@ export const updateUserRole = async (req, res) => {
             return res.status(404).json({
                 message: error.message
             });
-        } else if (error.message === 'Role không hợp lệ') {
+        } else if (error.message === 'Role không hợp lệ' || error.message === 'Không thể hạ quyền của chính bạn') {
             return res.status(400).json({
                 message: error.message
             });
@@ -111,7 +111,7 @@ export const updateUserRole = async (req, res) => {
 export const deleteUser = async (req, res) => {
     try {
         const { id } = req.params;
-        const result = await adminUserService.deleteUser(parseInt(id));
+        const result = await adminUserService.deleteUser(parseInt(id), req.user.id);
         
         res.status(200).json(result);
     } catch (error) {
@@ -120,7 +120,8 @@ export const deleteUser = async (req, res) => {
             return res.status(404).json({
                 message: error.message
             });
-        } else if (error.message.includes('admin cuối cùng')) {
+        } else if (error.message === 'Không thể xóa admin cuối cùng trong hệ thống' || 
+                   error.message === 'Không thể xóa tài khoản của chính bạn') {
             return res.status(400).json({
                 message: error.message
             });

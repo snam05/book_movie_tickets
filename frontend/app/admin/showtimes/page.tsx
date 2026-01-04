@@ -19,14 +19,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, Calendar } from 'lucide-react';
+import { Plus, Pencil, Trash2, Calendar, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { getAllShowtimes, deleteShowtime, Showtime } from '@/lib/api/showtimes';
+import { Input } from '@/components/ui/input';
 
 export default function AdminShowtimesPage() {
   const router = useRouter();
   const [showtimes, setShowtimes] = useState<Showtime[]>([]);
+  const [filteredShowtimes, setFilteredShowtimes] = useState<Showtime[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [showtimeToDelete, setShowtimeToDelete] = useState<Showtime | null>(null);
   const [errorDialog, setErrorDialog] = useState({ open: false, message: '' });
@@ -40,12 +43,28 @@ export default function AdminShowtimesPage() {
       setLoading(true);
       const data = await getAllShowtimes();
       setShowtimes(data);
+      setFilteredShowtimes(data);
     } catch (error) {
       console.error('Error loading showtimes:', error);
       setErrorDialog({ open: true, message: 'Lỗi khi tải danh sách lịch chiếu' });
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSearch = () => {
+    if (!searchTerm.trim()) {
+      setFilteredShowtimes(showtimes);
+      return;
+    }
+    
+    const term = searchTerm.toLowerCase();
+    const filtered = showtimes.filter(showtime => 
+      showtime.movie?.title.toLowerCase().includes(term) ||
+      showtime.theater?.name.toLowerCase().includes(term) ||
+      showtime.id.toString().includes(term)
+    );
+    setFilteredShowtimes(filtered);
   };
 
   const handleDelete = async () => {
@@ -117,6 +136,29 @@ export default function AdminShowtimesPage() {
         </Button>
       </div>
 
+      {/* Search */}
+      <div className="bg-white rounded-lg shadow p-4">
+        <div className="flex gap-2">
+          <Input
+            type="text"
+            placeholder="Tìm lịch chiếu theo phim, rạp, ID..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              if (!e.target.value.trim()) {
+                setFilteredShowtimes(showtimes);
+              }
+            }}
+            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+            className="flex-1"
+          />
+          <Button onClick={handleSearch} className="bg-red-600 hover:bg-red-700">
+            <Search className="mr-2 h-4 w-4" />
+            Tìm kiếm
+          </Button>
+        </div>
+      </div>
+
       {/* Table */}
       <div className="bg-white rounded-lg shadow">
         <Table>
@@ -134,14 +176,14 @@ export default function AdminShowtimesPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {showtimes.length === 0 ? (
+            {filteredShowtimes.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={9} className="text-center py-8 text-gray-500">
-                  Chưa có lịch chiếu nào
+                  {searchTerm ? 'Không tìm thấy lịch chiếu nào' : 'Chưa có lịch chiếu nào'}
                 </TableCell>
               </TableRow>
             ) : (
-              showtimes.map((showtime) => (
+              filteredShowtimes.map((showtime) => (
                 <TableRow key={showtime.id}>
                   <TableCell className="font-medium">{showtime.id}</TableCell>
                   <TableCell className="font-semibold max-w-[200px] break-words whitespace-normal">

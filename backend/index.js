@@ -6,6 +6,7 @@ import dotenv from 'dotenv'; // Dùng để quản lý biến môi trường
 import cors from 'cors'; // Cho phép các yêu cầu từ các domain khác
 import cookieParser from 'cookie-parser'; // Xử lý cookie
 import connectDB from './db.config.js'; 
+import { activityLogger } from './middleware/activity-logger.middleware.js';
 
 // 🎯 IMPORT ROUTES
 import authRoutes from './routes/auth.routes.js'; 
@@ -16,7 +17,8 @@ import showtimeRoutes from './routes/showtime.routes.js';
 import bookingRoutes from './routes/booking.routes.js';
 import theaterRoutes from './routes/theater.routes.js';
 import adminUserRoutes from './routes/admin.user.routes.js';
-import adminBookingRoutes from './routes/admin.booking.routes.js'; 
+import adminBookingRoutes from './routes/admin.booking.routes.js';
+import activityRoutes from './routes/activity.routes.js'; 
 
 // --- CẤU HÌNH BAN ĐẦU ---
 dotenv.config(); // Load biến môi trường từ .env
@@ -38,6 +40,9 @@ app.use(cookieParser());
 // Middleware cho phép Express xử lý JSON trong body request
 app.use(express.json());
 
+// Activity Logger Middleware (ghi log tất cả hoạt động)
+app.use(activityLogger());
+
 // 2. GẮN CÁC ROUTES CỦA ỨNG DỤNG VÀO SERVER
 const API_PREFIX = '/api/v1'; // Định nghĩa tiền tố API chung
 
@@ -50,6 +55,7 @@ app.use(`${API_PREFIX}/bookings`, bookingRoutes); // Gắn Booking Routes
 app.use(`${API_PREFIX}/theaters`, theaterRoutes); // Gắn Theater Routes
 app.use(`${API_PREFIX}/admin/users`, adminUserRoutes); // Gắn Admin User Routes
 app.use(`${API_PREFIX}/admin/bookings`, adminBookingRoutes); // Gắn Admin Booking Routes
+app.use(`${API_PREFIX}/activities`, activityRoutes); // Gắn Activity Routes
 
 // 3. Định nghĩa Route đầu tiên (kiểm tra server)
 app.get('/', (req, res) => {

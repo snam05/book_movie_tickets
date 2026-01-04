@@ -125,6 +125,11 @@ export const deleteUser = async (req, res) => {
             return res.status(400).json({
                 message: error.message
             });
+        } else if (error.message.includes('Không thể xóa người dùng')) {
+            return res.status(409).json({
+                message: error.message,
+                code: 'CONSTRAINT_VIOLATION'
+            });
         } else {
             return res.status(500).json({
                 message: 'Lỗi khi xóa người dùng',

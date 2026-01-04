@@ -137,6 +137,12 @@ export const deleteTheater = async (req, res) => {
             res.status(404).json({
                 message: error.message
             });
+        } else if (error.message.includes('Không thể xóa')) {
+            // Constraint error - cannot delete due to related records
+            res.status(409).json({
+                message: error.message,
+                code: 'CONSTRAINT_VIOLATION'
+            });
         } else {
             res.status(500).json({
                 message: 'Lỗi khi xóa rạp chiếu',

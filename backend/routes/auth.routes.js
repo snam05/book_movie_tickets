@@ -2,7 +2,7 @@
 
 // @ts-nocheck
 import express from 'express';
-import { register, login, verifyUser, updateProfile, logout } from '../controllers/auth.controller.js'; 
+import { register, login, verifyUser, updateProfile, logout, changePassword } from '../controllers/auth.controller.js'; 
 import { verifyToken } from '../middleware/auth.middleware.js'; // Nhập middleware gác cổng
 
 const router = express.Router();
@@ -14,7 +14,7 @@ router.post('/register', register);
 router.post('/login', login);
 
 // 3. Endpoint Đăng xuất
-router.post('/logout', logout);
+router.post('/logout', verifyToken, logout);
 
 // 4. Endpoint xác thực Token cho Frontend Middleware
 // Khi Next.js gọi đến đây, nó sẽ chạy qua verifyToken trước.
@@ -23,6 +23,9 @@ router.get('/verify', verifyToken, verifyUser);
 
 // 5. Endpoint cập nhật thông tin profile
 router.put('/update-profile', verifyToken, updateProfile);
+
+// 6. Endpoint đổi mật khẩu
+router.put('/change-password', verifyToken, changePassword);
 
 
 export default router;

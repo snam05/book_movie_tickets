@@ -284,6 +284,15 @@ export const deleteMovie = async (movieId) => {
             throw new Error('Không tìm thấy phim');
         }
 
+        // Kiểm tra xem phim có lịch chiếu gắn kèm không
+        const showtimeCount = await Showtime.count({
+            where: { movie_id: movieId }
+        });
+
+        if (showtimeCount > 0) {
+            throw new Error(`Không thể xóa phim này vì có ${showtimeCount} lịch chiếu đang gắn kèm`);
+        }
+
         // Xóa poster từ Cloudinary nếu có
         if (movie.poster_url) {
             const publicId = extractPublicId(movie.poster_url);

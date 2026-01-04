@@ -2,6 +2,7 @@
 // Service cho admin quản lý users
 
 import User from '../models/User.model.js';
+import { Booking } from '../models/index.js';
 import { Op } from 'sequelize';
 
 /**
@@ -102,6 +103,15 @@ export const deleteUser = async (userId, currentUserId) => {
         }
     }
     
+    // Kiểm tra xem user có booking nào không
+    const bookingCount = await Booking.count({
+        where: { user_id: userId }
+    });
+
+    if (bookingCount > 0) {
+        throw new Error(`Không thể xóa người dùng này vì có ${bookingCount} đơn đặt vé gắn kèm`);
+    }
+    
     await user.destroy();
     
     return { message: 'Đã xóa người dùng thành công' };
@@ -139,6 +149,14 @@ export const createUser = async (userData) => {
         const existingCCCD = await User.findOne({ where: { cccd_number } });
         if (existingCCCD) {
             throw new Error('Số CCCD đã được sử dụng');
+        }
+    }
+    
+    // Kiểm tra số điện thoại đã tồn tại
+    if (phone_number) {
+        const existingPhone = await User.findOne({ where: { phone_number } });
+        if (existingPhone) {
+            throw new Error('Số điện thoại đã được sử dụng');
         }
     }
     
@@ -211,6 +229,19 @@ export const updateUser = async (userId, updateData) => {
             throw new Error('Số CCCD đã được sử dụng');
         }
         user.cccd_number = updateData.cccd_number;
+    }
+    
+    // Kiểm tra số điện thoại nếu có thay đổi
+    if (updateData.phone_number && updateData.phone_number !== user.phone_number) {
+        const existingPhone = await User.findOne({ 
+            where: { 
+                phone_number: updateData.phone_number,
+                id: { [Op.ne]: userId }
+            } 
+        });
+        if (existingPhone) {
+            throw new Error('Số điện thoại đã được sử dụng');
+        }
     }
     
     // Cập nhật các trường khác

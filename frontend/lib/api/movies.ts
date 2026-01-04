@@ -108,11 +108,8 @@ export const getMovieById = async (id: number): Promise<MovieFromAPI> => {
  */
 export const createMovie = async (formData: FormData): Promise<MovieFromAPI> => {
   try {
-    const response = await axios.post<any, AxiosResponse<{ message: string; data: MovieFromAPI }>>(`${API_URL}/movies`, formData, {
+    const response = await axios.post<{ message: string; data: MovieFromAPI }>(`${API_URL}/movies`, formData, {
       withCredentials: true,
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
     });
     return response.data.data;
   } catch (error) {

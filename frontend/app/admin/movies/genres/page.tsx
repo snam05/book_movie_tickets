@@ -1,9 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { getAllMovies, deleteMovie, MovieFromAPI } from '@/lib/api/movies';
+import { getAllGenres, deleteGenre, Genre } from '@/lib/api/genres';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import {
   Table,
@@ -21,16 +20,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, Film, Search } from 'lucide-react';
-import Link from 'next/link';
+import { Plus, Pencil, Trash2, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/api/v1';
 
-export default function AdminMoviesPage() {
+export default function AdminGenresPage() {
   const router = useRouter();
-  const [movies, setMovies] = useState<MovieFromAPI[]>([]);
+  const [genres, setGenres] = useState<Genre[]>([]);
+  const [filteredGenres, setFilteredGenres] = useState<Genre[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -39,50 +37,71 @@ export default function AdminMoviesPage() {
   const [pageSize] = useState(10);
   
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [movieToDelete, setMovieToDelete] = useState<MovieFromAPI | null>(null);
+  const [genreToDelete, setGenreToDelete] = useState<Genre | null>(null);
   const [errorDialog, setErrorDialog] = useState({ open: false, message: '', code: '' });
 
   useEffect(() => {
-    loadMovies();
+    loadGenres();
   }, []);
 
-  const loadMovies = async () => {
+  const loadGenres = async () => {
     try {
       setLoading(true);
-      const data = await getAllMovies();
-      setMovies(data);
+      const data = await getAllGenres();
+      setGenres(data);
+      setFilteredGenres(data);
     } catch (error) {
-      console.error('Error loading movies:', error);
-      setErrorDialog({ open: true, message: 'Lỗi khi tải danh sách phim' });
+      console.error('Error loading genres:', error);
+      setErrorDialog({ open: true, message: 'Lỗi khi tải danh sách thể loại' });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSearch = async () => {
+  const handleSearch = () => {
+    if (!searchTerm.trim()) {
+      setFilteredGenres(genres);
+      setCurrentPage(1);
+      return;
+    }
+    
+    const term = searchTerm.toLowerCase();
+    const filtered = genres.filter(genre => 
+      genre.name.toLowerCase().includes(term)
+    );
+    setFilteredGenres(filtered);
+    setCurrentPage(1);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!genreToDelete) return;
+
     try {
-      setLoading(true);
-      setCurrentPage(1); // Reset to first page when searching
-      const params = searchTerm.trim() ? `?search=${encodeURIComponent(searchTerm.trim())}` : '';
-      const response = await axios.get(`${API_URL}/movies${params}`);
-      setMovies(response.data.data);
-    } catch (error) {
-      console.error('Error searching movies:', error);
-      setErrorDialog({ open: true, message: 'Lỗi khi tìm kiếm' });
-    } finally {
-      setLoading(false);
+      await deleteGenre(genreToDelete.id);
+      setDeleteDialogOpen(false);
+      setGenreToDelete(null);
+      loadGenres();
+    } catch (error: any) {
+      console.error('Error deleting genre:', error);
+      setDeleteDialogOpen(false);
+      setGenreToDelete(null);
+      setErrorDialog({ 
+        open: true, 
+        message: error.response?.data?.message || 'Lỗi khi xóa thể loại',
+        code: error.response?.data?.code || ''
+      });
     }
   };
 
   // Pagination helpers
-  const totalPages = Math.ceil(movies.length / pageSize);
-  const paginatedMovies = movies.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const totalPages = Math.ceil(filteredGenres.length / pageSize);
+  const paginatedGenres = filteredGenres.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const getPaginationNumbers = () => {
     const pages = [];
     const maxVisible = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-        const endPage = Math.min(totalPages, startPage + maxVisible - 1);
+    const endPage = Math.min(totalPages, startPage + maxVisible - 1);
 
     if (startPage > 1) {
       pages.push(1);
@@ -115,38 +134,6 @@ export default function AdminMoviesPage() {
     }
   };
 
-  const handleDelete = async () => {
-    if (!movieToDelete) return;
-
-    try {
-      await axios.delete(`${API_URL}/movies/${movieToDelete.id}`, {
-        withCredentials: true
-      });
-      setDeleteDialogOpen(false);
-      setMovieToDelete(null);
-      loadMovies();
-    } catch (error: any) {
-      console.error('Error deleting movie:', error);
-      setDeleteDialogOpen(false);
-      setMovieToDelete(null);
-      setErrorDialog({ 
-        open: true, 
-        message: error.response?.data?.message || 'Lỗi khi xóa phim',
-        code: error.response?.data?.code || ''
-      });
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    const statusMap: Record<string, { label: string; className: string }> = {
-      'now_showing': { label: 'Đang chiếu', className: 'bg-green-500 hover:bg-green-600' },
-      'coming_soon': { label: 'Sắp chiếu', className: 'bg-blue-500 hover:bg-blue-600' },
-      'ended': { label: 'Đã kết thúc', className: 'bg-gray-500 hover:bg-gray-600' }
-    };
-    const config = statusMap[status] || { label: status, className: 'bg-gray-500' };
-    return <Badge className={config.className}>{config.label}</Badge>;
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -163,15 +150,15 @@ export default function AdminMoviesPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Quản lý Phim</h1>
-          <p className="text-gray-600 mt-1">Quản lý danh sách phim trong hệ thống</p>
+          <h1 className="text-3xl font-bold text-gray-900">Quản lý Thể loại Phim</h1>
+          <p className="text-gray-600 mt-1">Quản lý danh sách các thể loại phim</p>
         </div>
         <Button 
           className="bg-red-600 hover:bg-red-700 text-white"
-          onClick={() => router.push('/admin/movies/create')}
+          onClick={() => router.push('/admin/movies/genres/create')}
         >
           <Plus className="mr-2 h-4 w-4" />
-          Thêm phim mới
+          Thêm Thể loại
         </Button>
       </div>
 
@@ -180,7 +167,7 @@ export default function AdminMoviesPage() {
         <div className="flex gap-2">
           <Input
             type="text"
-            placeholder="Tìm phim theo tên..."
+            placeholder="Tìm thể loại theo tên..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
@@ -198,35 +185,31 @@ export default function AdminMoviesPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Tên phim</TableHead>
-              <TableHead>Thời lượng</TableHead>
-              <TableHead>Đánh giá</TableHead>
-              <TableHead>Trạng thái</TableHead>
+              <TableHead>Tên Thể loại</TableHead>
+              <TableHead>Mô tả</TableHead>
               <TableHead className="text-right">Hành động</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedMovies.length === 0 ? (
+            {paginatedGenres.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                  Chưa có phim nào
+                <TableCell colSpan={3} className="text-center py-8 text-gray-500">
+                  Chưa có thể loại nào
                 </TableCell>
               </TableRow>
             ) : (
-              paginatedMovies.map((movie) => (
-                <TableRow key={movie.id}>
-                  <TableCell className="font-semibold max-w-[200px] break-words whitespace-normal">{movie.title}</TableCell>
-                  <TableCell>{movie.duration} phút</TableCell>
-                  <TableCell>
-                    <Badge variant="outline">⭐ {movie.rating || 'N/A'}</Badge>
+              paginatedGenres.map((genre) => (
+                <TableRow key={genre.id}>
+                  <TableCell>{genre.name}</TableCell>
+                  <TableCell className="text-gray-600 max-w-[300px] truncate">
+                    {genre.description || '-'}
                   </TableCell>
-                  <TableCell>{getStatusBadge(movie.status)}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => router.push(`/admin/movies/edit/${movie.id}`)}
+                        onClick={() => router.push(`/admin/movies/genres/${genre.id}/edit`)}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -234,7 +217,7 @@ export default function AdminMoviesPage() {
                         size="sm"
                         variant="destructive"
                         onClick={() => {
-                          setMovieToDelete(movie);
+                          setGenreToDelete(genre);
                           setDeleteDialogOpen(true);
                         }}
                       >
@@ -322,7 +305,7 @@ export default function AdminMoviesPage() {
           </div>
 
           <div className="ml-4 text-sm text-gray-600">
-            Trang {currentPage} của {totalPages} ({movies.length} tổng cộng)
+            Trang {currentPage} của {totalPages} ({filteredGenres.length} tổng cộng)
           </div>
         </div>
       )}
@@ -331,9 +314,9 @@ export default function AdminMoviesPage() {
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Xác nhận xóa phim</DialogTitle>
+            <DialogTitle>Xác nhận xóa thể loại</DialogTitle>
             <DialogDescription>
-              Bạn có chắc chắn muốn xóa phim <strong>{movieToDelete?.title}</strong>? 
+              Bạn có chắc chắn muốn xóa thể loại <strong>{genreToDelete?.name}</strong>? 
               Hành động này không thể hoàn tác.
             </DialogDescription>
           </DialogHeader>
@@ -341,7 +324,7 @@ export default function AdminMoviesPage() {
             <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
               Hủy
             </Button>
-            <Button variant="destructive" onClick={handleDelete}>
+            <Button variant="destructive" onClick={handleDeleteConfirm}>
               Xóa
             </Button>
           </DialogFooter>
@@ -358,7 +341,7 @@ export default function AdminMoviesPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end">
-            <Button onClick={() => setErrorDialog({ open: false, message: '' })}>
+            <Button onClick={() => setErrorDialog({ open: false, message: '', code: '' })}>
               Đóng
             </Button>
           </div>

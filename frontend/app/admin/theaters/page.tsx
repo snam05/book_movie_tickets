@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Theater, getAllTheaters, deleteTheater, updateTheaterStatus } from '@/lib/api/theaters';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -31,11 +31,16 @@ export default function AdminTheatersPage() {
   const [filteredTheaters, setFilteredTheaters] = useState<Theater[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10);
+  
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [theaterToDelete, setTheaterToDelete] = useState<Theater | null>(null);
   const [theaterToToggle, setTheaterToToggle] = useState<Theater | null>(null);
-  const [errorDialog, setErrorDialog] = useState({ open: false, message: '' });
+  const [errorDialog, setErrorDialog] = useState({ open: false, message: '', code: '' });
 
   useEffect(() => {
     loadTheaters();
@@ -58,6 +63,7 @@ export default function AdminTheatersPage() {
   const handleSearch = () => {
     if (!searchTerm.trim()) {
       setFilteredTheaters(theaters);
+      setCurrentPage(1);
       return;
     }
     
@@ -66,6 +72,48 @@ export default function AdminTheatersPage() {
       theater.name.toLowerCase().includes(term)
     );
     setFilteredTheaters(filtered);
+    setCurrentPage(1);
+  };
+
+  // Pagination helpers
+  const totalPages = Math.ceil(filteredTheaters.length / pageSize);
+  const paginatedTheaters = filteredTheaters.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  const getPaginationNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+        const endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+    if (startPage > 1) {
+      pages.push(1);
+      if (startPage > 2) pages.push('...');
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) pages.push('...');
+      pages.push(totalPages);
+    }
+
+    return pages;
+  };
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleGoToPage = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const handleDelete = async () => {
@@ -80,9 +128,12 @@ export default function AdminTheatersPage() {
       console.error('Error deleting theater:', error);
       setDeleteDialogOpen(false);
       setTheaterToDelete(null);
+      const code = error.response?.data?.code || '';
+      const message = error.response?.data?.message || 'Lỗi khi xóa rạp chiếu';
       setErrorDialog({ 
         open: true, 
-        message: error.response?.data?.message || 'Lỗi khi xóa rạp chiếu' 
+        message,
+        code
       });
     }
   };
@@ -193,14 +244,14 @@ export default function AdminTheatersPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredTheaters.length === 0 ? (
+            {paginatedTheaters.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                   {searchTerm ? 'Không tìm thấy rạp chiếu nào' : 'Chưa có rạp chiếu nào'}
                 </TableCell>
               </TableRow>
             ) : (
-              filteredTheaters.map((theater) => (
+              paginatedTheaters.map((theater) => (
                 <TableRow key={theater.id}>
                   <TableCell className="font-semibold">{theater.name}</TableCell>
                   <TableCell>
@@ -247,6 +298,84 @@ export default function AdminTheatersPage() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="mt-6 flex items-center justify-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => handlePageChange(1)}
+            disabled={currentPage === 1 || loading}
+            size="sm"
+          >
+            Đầu tiên
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1 || loading}
+            size="sm"
+          >
+            Trước
+          </Button>
+
+          {getPaginationNumbers().map((page, index) => (
+            <React.Fragment key={index}>
+              {page === '...' ? (
+                <span className="px-2 text-gray-500">...</span>
+              ) : (
+                <Button
+                  variant={currentPage === page ? 'default' : 'outline'}
+                  onClick={() => handlePageChange(page as number)}
+                  disabled={loading}
+                  size="sm"
+                  className={currentPage === page ? 'bg-red-600 hover:bg-red-700' : ''}
+                >
+                  {page}
+                </Button>
+              )}
+            </React.Fragment>
+          ))}
+
+          <Button
+            variant="outline"
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages || loading}
+            size="sm"
+          >
+            Tiếp theo
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => handlePageChange(totalPages)}
+            disabled={currentPage === totalPages || loading}
+            size="sm"
+          >
+            Cuối cùng
+          </Button>
+
+          <div className="ml-4 flex items-center gap-2">
+            <span className="text-sm text-gray-600">Đi đến:</span>
+            <Input
+              type="number"
+              min="1"
+              max={totalPages}
+              defaultValue={currentPage}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const page = parseInt((e.target as HTMLInputElement).value);
+                  handleGoToPage(page);
+                }
+              }}
+              className="w-16 h-10"
+            />
+          </div>
+
+          <div className="ml-4 text-sm text-gray-600">
+            Trang {currentPage} của {totalPages} ({filteredTheaters.length} tổng cộng)
+          </div>
+        </div>
+      )}
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -308,7 +437,7 @@ export default function AdminTheatersPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end">
-            <Button onClick={() => setErrorDialog({ open: false, message: '' })}>
+            <Button onClick={() => setErrorDialog({ open: false, message: '', code: '' })}>
               Đóng
             </Button>
           </div>

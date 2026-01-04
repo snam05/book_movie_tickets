@@ -5,6 +5,8 @@ import BookedSeat from '../models/BookedSeat.model.js';
 import Showtime from '../models/Showtime.model.js';
 import Movie from '../models/Movie.model.js';
 import Theater from '../models/Theater.model.js';
+import { sequelize } from '../db.config.js';
+import { Op } from 'sequelize';
 
 /**
  * Cập nhật trạng thái booking dựa trên thời gian chiếu
@@ -206,6 +208,98 @@ export const cancelBooking = async (bookingId, userId) => {
         return booking;
     } catch (error) {
         console.error('Error in cancelBooking:', error);
+        throw error;
+    }
+};
+
+/**
+ * Lấy thống kê doanh thu
+ */
+export const getRevenueStatistics = async (startDate, endDate) => {
+    try {
+        // Nếu không có startDate và endDate, lấy dữ liệu của 30 ngày gần nhất
+        let start = startDate ? new Date(startDate) : new Date();
+        let end = endDate ? new Date(endDate) : new Date();
+        
+        if (!startDate) {
+            start.setDate(start.getDate() - 29);
+        }
+        if (!endDate) {
+            end.setHours(23, 59, 59, 999);
+        } else {
+            end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
+        }
+
+        // Lấy tất cả bookings (confirmed và completed) trong khoảng thời gian
+        const bookings = await Booking.findAll({
+            where: {
+                booking_status: ['confirmed', 'completed'],
+                created_at: {
+                    [Op.gte]: start,
+                    [Op.lte]: end
+                }
+            },
+            include: [
+                {
+                    model: BookedSeat,
+                    as: 'seats',
+                    attributes: ['id']
+                }
+            ],
+            raw: false
+        });
+
+        // Nhóm dữ liệu theo ngày
+        const dataByDate = {};
+        
+        for (let i = 0; i < bookings.length; i++) {
+            const booking = bookings[i];
+            const bookingDate = new Date(booking.created_at);
+            const dateKey = bookingDate.toISOString().split('T')[0];
+
+            if (!dataByDate[dateKey]) {
+                dataByDate[dateKey] = {
+                    revenue: 0,
+                    bookings: 0,
+                    tickets: 0
+                };
+            }
+
+            dataByDate[dateKey].revenue += parseFloat(booking.total_price) || 0;
+            dataByDate[dateKey].bookings += 1;
+            dataByDate[dateKey].tickets += booking.total_seats || 0;
+        }
+
+        // Tạo mảng dailyData từ object
+        const dailyData = Object.keys(dataByDate)
+            .sort()
+            .map(date => ({
+                date,
+                revenue: Math.round(dataByDate[date].revenue),
+                bookings: dataByDate[date].bookings,
+                tickets: dataByDate[date].tickets
+            }));
+
+        // Tính tổng thống kê
+        const totalRevenue = dailyData.reduce((sum, item) => sum + item.revenue, 0);
+        const totalBookings = dailyData.reduce((sum, item) => sum + item.bookings, 0);
+        const totalTickets = dailyData.reduce((sum, item) => sum + item.tickets, 0);
+
+        // Tính doanh thu hôm nay (nếu có)
+        const today = new Date().toISOString().split('T')[0];
+        const todayRevenue = dataByDate[today]?.revenue || 0;
+
+        return {
+            totalRevenue: Math.round(totalRevenue),
+            monthRevenue: Math.round(totalRevenue),
+            todayRevenue: Math.round(todayRevenue),
+            totalBookings,
+            totalTickets,
+            dailyData
+        };
+    } catch (error) {
+        console.error('Error in getRevenueStatistics:', error);
         throw error;
     }
 };

@@ -42,6 +42,14 @@ export const registerUser = async (userData, ipAddress, userAgent) => {
         throw new Error('Số CCCD đã tồn tại trong hệ thống.');
     }
     
+    // C. Kiểm tra số điện thoại (nếu có)
+    if (rest.phone_number) {
+        const existingPhone = await User.findOne({ where: { phone_number: rest.phone_number } });
+        if (existingPhone) {
+            throw new Error('Số điện thoại đã tồn tại trong hệ thống.');
+        }
+    }
+    
     // C. Tạo mã thành viên duy nhất
     let memberCode;
     let codeExists = true;

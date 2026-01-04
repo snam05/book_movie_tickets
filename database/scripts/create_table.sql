@@ -229,6 +229,45 @@ CREATE INDEX idx_showtime_search ON showtimes(movie_id, showtime_date, theater_i
 -- Index cho tìm kiếm booking theo trạng thái và ngày
 CREATE INDEX idx_booking_date_status ON bookings(booking_date, booking_status);
 
+
+
+
+
+-- Create activities table for logging system activities
+CREATE TABLE IF NOT EXISTS `activities` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `user_id` INT NULL,
+  `action` VARCHAR(100) NOT NULL COMMENT 'Hành động thực hiện (CREATE, READ, UPDATE, DELETE, LOGIN, LOGOUT, etc)',
+  `resource` VARCHAR(100) NOT NULL COMMENT 'Loại tài nguyên bị tác động (User, Movie, Booking, Theater, Showtime, etc)',
+  `resource_id` INT NULL COMMENT 'ID của tài nguyên bị tác động',
+  `description` TEXT NULL COMMENT 'Mô tả chi tiết hoạt động',
+  `metadata` JSON NULL COMMENT 'Dữ liệu bổ sung (thay đổi, trạng thái, etc)',
+  `method` VARCHAR(10) NOT NULL COMMENT 'HTTP method (GET, POST, PUT, DELETE, etc)',
+  `endpoint` VARCHAR(255) NOT NULL COMMENT 'API endpoint được gọi',
+  `status_code` INT NULL COMMENT 'HTTP response status code',
+  `ip_address` VARCHAR(45) NULL COMMENT 'IPv4 hoặc IPv6 address của user',
+  `user_agent` TEXT NULL COMMENT 'Thông tin trình duyệt và hệ điều hành',
+  `browser` VARCHAR(100) NULL COMMENT 'Tên trình duyệt (Chrome, Firefox, Safari, etc)',
+  `os` VARCHAR(100) NULL COMMENT 'Tên hệ điều hành (Windows, macOS, Linux, etc)',
+  `response_time` INT NULL COMMENT 'Thời gian phản hồi (ms)',
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `idx_user_id` (`user_id` ASC),
+  INDEX `idx_action` (`action` ASC),
+  INDEX `idx_resource` (`resource` ASC),
+  INDEX `idx_created_at` (`created_at` DESC),
+  INDEX `idx_ip_address` (`ip_address` ASC),
+  CONSTRAINT `fk_activities_user`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `users` (`id`)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE
+) ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_unicode_ci
+COMMENT = 'Bảng lưu nhật ký hoạt động của hệ thống';
+
+
 -- =============================================
 -- HOÀN THÀNH
 -- =============================================

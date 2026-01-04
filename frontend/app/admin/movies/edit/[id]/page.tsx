@@ -131,7 +131,7 @@ export default function EditMoviePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.title || !formData.duration) {
+    if (!formData.title || !formData.duration || !formData.release_date) {
       setErrorDialog({ open: true, message: 'Vui lòng điền tất cả thông tin bắt buộc' });
       return;
     }
@@ -294,13 +294,14 @@ export default function EditMoviePage() {
 
           {/* Release Date */}
           <div className="space-y-2">
-            <Label htmlFor="release_date">Ngày Phát Hành</Label>
+            <Label htmlFor="release_date">Ngày Phát Hành <span className="text-red-600">*</span></Label>
             <Input
               id="release_date"
               name="release_date"
               type="date"
               value={formData.release_date}
               onChange={handleInputChange}
+              required
             />
           </div>
 

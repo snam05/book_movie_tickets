@@ -8,8 +8,16 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { 
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { 
     User, Mail, CreditCard, Hash, 
-    Pencil, Save, X 
+    Pencil, Save, X, Lock 
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL + '/auth';
@@ -24,6 +32,20 @@ export default function ProfilePage() {
         full_name: '',
         cccd_number: ''
     });
+
+    // Password change dialog states
+    const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+    const [passwordForm, setPasswordForm] = useState({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+    });
+    const [passwordError, setPasswordError] = useState('');
+    const [passwordSuccess, setPasswordSuccess] = useState(false);
+
+    // Profile update dialog states
+    const [profileSuccessDialog, setProfileSuccessDialog] = useState(false);
+    const [profileErrorDialog, setProfileErrorDialog] = useState({ open: false, message: '' });
 
     // 1. Lấy dữ liệu từ Database ngay khi vào trang
     useEffect(() => {
@@ -68,11 +90,71 @@ export default function ProfilePage() {
                 window.dispatchEvent(new Event('authChange'));
                 
                 setIsEditing(false);
-                alert("✅ Cập nhật thông tin thành công!");
+                setProfileSuccessDialog(true);
             }
         } catch (err: any) {
             console.error(err);
-            alert(err.response?.data?.message || "❌ Cập nhật thất bại, vui lòng kiểm tra lại.");
+            setProfileErrorDialog({ 
+                open: true, 
+                message: err.response?.data?.message || "Cập nhật thất bại, vui lòng kiểm tra lại." 
+            });
+        }
+    };
+
+    // 3. Logic xử lý đổi mật khẩu
+    const handleChangePassword = async () => {
+        setPasswordError('');
+
+        // Validation
+        if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+            setPasswordError('Vui lòng điền đầy đủ thông tin');
+            return;
+        }
+
+        if (passwordForm.newPassword.length < 8) {
+            setPasswordError('Mật khẩu mới phải có ít nhất 8 ký tự');
+            return;
+        }
+
+        // Check password strength
+        const hasUpperCase = /[A-Z]/.test(passwordForm.newPassword);
+        const hasLowerCase = /[a-z]/.test(passwordForm.newPassword);
+        const hasNumber = /[0-9]/.test(passwordForm.newPassword);
+        const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(passwordForm.newPassword);
+
+        if (!hasUpperCase || !hasLowerCase || !hasNumber || !hasSpecialChar) {
+            setPasswordError('Mật khẩu phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt (!@#$%^&*...)');
+            return;
+        }
+
+        if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+            setPasswordError('Mật khẩu xác nhận không khớp');
+            return;
+        }
+
+        try {
+            const res = await axios.put(`${API_URL}/change-password`, {
+                currentPassword: passwordForm.currentPassword,
+                newPassword: passwordForm.newPassword
+            }, {
+                withCredentials: true
+            });
+
+            if (res.data.success) {
+                setPasswordSuccess(true);
+                setPasswordForm({
+                    currentPassword: '',
+                    newPassword: '',
+                    confirmPassword: ''
+                });
+                setTimeout(() => {
+                    setPasswordDialogOpen(false);
+                    setPasswordSuccess(false);
+                }, 2000);
+            }
+        } catch (err: any) {
+            console.error(err);
+            setPasswordError(err.response?.data?.message || "❌ Đổi mật khẩu thất bại");
         }
     };
 
@@ -98,13 +180,22 @@ export default function ProfilePage() {
                     {/* CỤM NÚT ĐIỀU KHIỂN SỬA/LƯU/HỦY */}
                     <div className="absolute top-4 right-4 flex gap-2">
                         {!isEditing ? (
-                            <Button 
-                                onClick={() => setIsEditing(true)} 
-                                variant="secondary" 
-                                className="gap-2 shadow-md hover:bg-white"
-                            >
-                                <Pencil size={16} /> Chỉnh sửa hồ sơ
-                            </Button>
+                            <>
+                                <Button 
+                                    onClick={() => setPasswordDialogOpen(true)} 
+                                    variant="outline" 
+                                    className="gap-2 shadow-md hover:bg-gray-50"
+                                >
+                                    <Lock size={16} /> Đổi mật khẩu
+                                </Button>
+                                <Button 
+                                    onClick={() => setIsEditing(true)} 
+                                    variant="secondary" 
+                                    className="gap-2 shadow-md hover:bg-white"
+                                >
+                                    <Pencil size={16} /> Chỉnh sửa hồ sơ
+                                </Button>
+                            </>
                         ) : (
                             <>
                                 <Button 
@@ -194,6 +285,135 @@ export default function ProfilePage() {
                     </div>
                 </CardContent>
             </Card>
+
+            {/* Password Change Dialog */}
+            <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Lock className="text-red-600" size={20} />
+                            Đổi mật khẩu
+                        </DialogTitle>
+                        <DialogDescription>
+                            Nhập mật khẩu hiện tại và mật khẩu mới của bạn
+                        </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Mật khẩu hiện tại</label>
+                            <Input
+                                type="password"
+                                value={passwordForm.currentPassword}
+                                onChange={(e) => setPasswordForm({...passwordForm, currentPassword: e.target.value})}
+                                placeholder="Nhập mật khẩu hiện tại"
+                                className="border-red-200 focus-visible:ring-red-500"
+                            />
+                        </div>
+                        
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Mật khẩu mới</label>
+                            <Input
+                                type="password"
+                                value={passwordForm.newPassword}
+                                onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
+                                placeholder="Nhập mật khẩu mới (tối thiểu 8 ký tự)"
+                                className="border-red-200 focus-visible:ring-red-500"
+                            />
+                            <p className="text-xs text-gray-500">
+                                * Phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt
+                            </p>
+                        </div>
+                        
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Xác nhận mật khẩu mới</label>
+                            <Input
+                                type="password"
+                                value={passwordForm.confirmPassword}
+                                onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
+                                placeholder="Nhập lại mật khẩu mới"
+                                className="border-red-200 focus-visible:ring-red-500"
+                            />
+                        </div>
+
+                        {passwordError && (
+                            <div className="text-red-600 text-sm font-medium bg-red-50 p-3 rounded">
+                                {passwordError}
+                            </div>
+                        )}
+
+                        {passwordSuccess && (
+                            <div className="text-green-600 text-sm font-medium bg-green-50 p-3 rounded">
+                                ✅ Đổi mật khẩu thành công!
+                            </div>
+                        )}
+                    </div>
+                    
+                    <DialogFooter>
+                        <Button 
+                            variant="outline" 
+                            onClick={() => {
+                                setPasswordDialogOpen(false);
+                                setPasswordForm({
+                                    currentPassword: '',
+                                    newPassword: '',
+                                    confirmPassword: ''
+                                });
+                                setPasswordError('');
+                            }}
+                        >
+                            Hủy
+                        </Button>
+                        <Button 
+                            onClick={handleChangePassword}
+                            className="bg-red-600 hover:bg-red-700"
+                            disabled={passwordSuccess}
+                        >
+                            Đổi mật khẩu
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Profile Success Dialog */}
+            <Dialog open={profileSuccessDialog} onOpenChange={setProfileSuccessDialog}>
+                <DialogContent showCloseButton={false}>
+                    <DialogHeader>
+                        <DialogTitle className="text-green-600">Thành công</DialogTitle>
+                        <DialogDescription>
+                            Cập nhật thông tin thành công!
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button 
+                            onClick={() => setProfileSuccessDialog(false)}
+                            className="bg-green-600 hover:bg-green-700"
+                        >
+                            Đóng
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Profile Error Dialog */}
+            <Dialog open={profileErrorDialog.open} onOpenChange={(open) => setProfileErrorDialog({ ...profileErrorDialog, open })}>
+                <DialogContent showCloseButton={false}>
+                    <DialogHeader>
+                        <DialogTitle className="text-red-600">Lỗi</DialogTitle>
+                        <DialogDescription className="text-red-600 font-medium">
+                            {profileErrorDialog.message}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button 
+                            onClick={() => setProfileErrorDialog({ open: false, message: '' })}
+                            variant="outline"
+                        >
+                            Đóng
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

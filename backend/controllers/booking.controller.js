@@ -114,3 +114,27 @@ export const cancelBookingById = async (req, res) => {
         });
     }
 };
+
+/**
+ * GET /api/v1/bookings/statistics/revenue
+ * Lấy thống kê doanh thu (dành cho admin)
+ */
+export const getRevenueStatistics = async (req, res) => {
+    try {
+        const { startDate, endDate } = req.query;
+
+        const statistics = await bookingService.getRevenueStatistics(startDate, endDate);
+
+        res.status(200).json({
+            success: true,
+            data: statistics
+        });
+    } catch (error) {
+        console.error('Error in getRevenueStatistics:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch revenue statistics',
+            error: error.message
+        });
+    }
+};

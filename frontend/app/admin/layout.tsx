@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Building2, Film, Calendar, Users } from 'lucide-react';
+import { Building2, Film, Calendar, Users, Ticket, BarChart3, Activity, Tag } from 'lucide-react';
 
 export default function AdminLayout({
   children,
@@ -61,17 +61,25 @@ export default function AdminLayout({
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar */}
-      <aside className="w-64 flex-shrink-0 bg-white shadow-lg">
-        <div className="p-6 border-b">
+      <aside className="w-64 flex-shrink-0 bg-white shadow-lg sticky top-0 h-screen flex flex-col">
+        <div className="p-6 border-b text-center">
           <Link href="/admin">
             <h2 className="text-2xl font-bold text-red-600 cursor-pointer hover:text-red-700 transition-colors">
               Admin Panel
             </h2>
           </Link>
           <p className="text-sm text-gray-600 mt-1">Quản trị hệ thống</p>
+          
+          <Link
+            href="/"
+            className="mt-4 flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+          >
+            ← Về trang chủ
+          </Link>
         </div>
         
-        <nav className="p-4 space-y-2">
+        <nav className="p-4 space-y-2 flex-1 overflow-y-auto">
+          
           <Link
             href="/admin/theaters"
             className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-red-50 text-gray-700 hover:text-red-600 transition-colors"
@@ -85,7 +93,15 @@ export default function AdminLayout({
             className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-red-50 text-gray-700 hover:text-red-600 transition-colors"
           >
             <Film className="h-5 w-5" />
-            <span className="font-medium">Phim</span>
+            <span className="font-medium">Danh sách Phim</span>
+          </Link>
+          
+          <Link
+            href="/admin/movies/genres"
+            className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-red-50 text-gray-700 hover:text-red-600 transition-colors"
+          >
+            <Tag className="h-5 w-5" />
+            <span className="font-medium">Thể loại Phim</span>
           </Link>
           
           <Link
@@ -95,6 +111,14 @@ export default function AdminLayout({
             <Calendar className="h-5 w-5" />
             <span className="font-medium">Lịch chiếu</span>
           </Link>
+
+          <Link
+            href="/admin/bookings"
+            className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-red-50 text-gray-700 hover:text-red-600 transition-colors"
+          >
+            <Ticket className="h-5 w-5" />
+            <span className="font-medium">Quản lý đặt vé</span>
+          </Link>
           
           <Link
             href="/admin/users"
@@ -103,16 +127,23 @@ export default function AdminLayout({
             <Users className="h-5 w-5" />
             <span className="font-medium">Người dùng</span>
           </Link>
-        </nav>
-        
-        <div className="absolute bottom-0 w-64 p-4 border-t">
+          
           <Link
-            href="/"
-            className="block text-center px-4 py-2 text-gray-600 hover:text-red-600 transition-colors"
+            href="/admin/statistics"
+            className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-red-50 text-gray-700 hover:text-red-600 transition-colors"
           >
-            ← Về trang chủ
+            <BarChart3 className="h-5 w-5" />
+            <span className="font-medium">Thống kê doanh thu</span>
           </Link>
-        </div>
+          
+          <Link
+            href="/admin/logs"
+            className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-red-50 text-gray-700 hover:text-red-600 transition-colors"
+          >
+            <Activity className="h-5 w-5" />
+            <span className="font-medium">Nhật ký hoạt động</span>
+          </Link>
+        </nav>
       </aside>
 
       {/* Main Content */}

@@ -10,6 +10,7 @@ import Theater from './Theater.model.js';
 import Showtime from './Showtime.model.js';
 import Booking from './Booking.model.js';
 import BookedSeat from './BookedSeat.model.js';
+import Activity from './Activity.model.js';
 
 // Export tất cả models
 export {
@@ -21,7 +22,8 @@ export {
     Theater,
     Showtime,
     Booking,
-    BookedSeat
+    BookedSeat,
+    Activity
 };
 
 // Export default object chứa tất cả models
@@ -34,5 +36,6 @@ export default {
     Theater,
     Showtime,
     Booking,
-    BookedSeat
+    BookedSeat,
+    Activity
 };

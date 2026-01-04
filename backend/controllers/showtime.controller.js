@@ -142,8 +142,9 @@ export const deleteShowtimeHandler = async (req, res) => {
                 message: error.message
             });
         } else if (error.message.includes('Không thể xóa')) {
-            res.status(400).json({
-                message: error.message
+            res.status(409).json({
+                message: error.message,
+                code: 'CONSTRAINT_VIOLATION'
             });
         } else {
             res.status(500).json({

@@ -1,6 +1,8 @@
 // backend/services/theater.service.js
 
 import Theater from '../models/Theater.model.js';
+import Showtime from '../models/Showtime.model.js';
+import Booking from '../models/Booking.model.js';
 import { Op } from 'sequelize';
 
 /**
@@ -124,8 +126,30 @@ export const deleteTheater = async (theaterId) => {
         throw new Error('Không tìm thấy rạp chiếu');
     }
     
-    // TODO: Kiểm tra xem rạp có showtimes không trước khi xóa
-    // Có thể thêm logic để không cho xóa nếu có lịch chiếu đang hoạt động
+    // Kiểm tra có showtimes gắn với rạp này không
+    const showtimeCount = await Showtime.count({
+        where: { theater_id: theaterId }
+    });
+    
+    if (showtimeCount > 0) {
+        throw new Error(`Không thể xóa rạp này vì có ${showtimeCount} lịch chiếu đang gắn kèm`);
+    }
+    
+    // Kiểm tra có bookings gắn với showtimes của rạp này không
+    const bookingCount = await Booking.count({
+        include: [
+            {
+                model: Showtime,
+                as: 'showtime',
+                required: true,
+                where: { theater_id: theaterId }
+            }
+        ]
+    });
+    
+    if (bookingCount > 0) {
+        throw new Error(`Không thể xóa rạp này vì có ${bookingCount} đơn đặt vé gắn kèm`);
+    }
     
     await theater.destroy();
     

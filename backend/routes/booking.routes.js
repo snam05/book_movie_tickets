@@ -9,6 +9,9 @@ const router = express.Router();
 // Tất cả routes đều yêu cầu authentication
 router.use(verifyToken);
 
+// GET /api/v1/bookings/statistics/revenue - Lấy thống kê doanh thu (dành cho admin)
+router.get('/statistics/revenue', bookingController.getRevenueStatistics);
+
 // POST /api/v1/bookings - Tạo booking mới
 router.post('/', bookingController.createBooking);
 

@@ -1,7 +1,7 @@
 // @ts-nocheck
 // controllers/genre.controller.js
 
-import { Genre } from '../models/index.js';
+import { Genre, MovieGenre } from '../models/index.js';
 
 /**
  * Lấy danh sách tất cả thể loại
@@ -158,6 +158,18 @@ export const deleteExistingGenre = async (req, res) => {
         if (!genre) {
             return res.status(404).json({
                 message: 'Không tìm thấy thể loại'
+            });
+        }
+
+        // Kiểm tra xem thể loại có phim nào dùng không
+        const movieCount = await MovieGenre.count({
+            where: { genre_id: genreId }
+        });
+
+        if (movieCount > 0) {
+            return res.status(409).json({
+                message: `Không thể xóa thể loại này vì có ${movieCount} phim đang dùng thể loại này`,
+                code: 'CONSTRAINT_VIOLATION'
             });
         }
 

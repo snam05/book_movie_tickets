@@ -217,6 +217,14 @@ export const deleteExistingMovie = async (req, res) => {
             });
         }
 
+        // Kiểm tra lỗi constraint violation
+        if (error.message.includes('Không thể xóa phim')) {
+            return res.status(409).json({
+                message: error.message,
+                code: 'CONSTRAINT_VIOLATION'
+            });
+        }
+
         console.error('ERROR deleting movie:', error);
         return res.status(500).json({
             message: 'Đã xảy ra lỗi khi xóa phim',

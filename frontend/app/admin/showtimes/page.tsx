@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -30,9 +30,14 @@ export default function AdminShowtimesPage() {
   const [filteredShowtimes, setFilteredShowtimes] = useState<Showtime[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10);
+  
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [showtimeToDelete, setShowtimeToDelete] = useState<Showtime | null>(null);
-  const [errorDialog, setErrorDialog] = useState({ open: false, message: '' });
+  const [errorDialog, setErrorDialog] = useState({ open: false, message: '', code: '' });
 
   useEffect(() => {
     loadShowtimes();
@@ -55,6 +60,7 @@ export default function AdminShowtimesPage() {
   const handleSearch = () => {
     if (!searchTerm.trim()) {
       setFilteredShowtimes(showtimes);
+      setCurrentPage(1);
       return;
     }
     
@@ -64,6 +70,48 @@ export default function AdminShowtimesPage() {
       showtime.theater?.name.toLowerCase().includes(term)
     );
     setFilteredShowtimes(filtered);
+    setCurrentPage(1);
+  };
+
+  // Pagination helpers
+  const totalPages = Math.ceil(filteredShowtimes.length / pageSize);
+  const paginatedShowtimes = filteredShowtimes.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  const getPaginationNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+        const endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+    if (startPage > 1) {
+      pages.push(1);
+      if (startPage > 2) pages.push('...');
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) pages.push('...');
+      pages.push(totalPages);
+    }
+
+    return pages;
+  };
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleGoToPage = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const handleDelete = async () => {
@@ -80,7 +128,8 @@ export default function AdminShowtimesPage() {
       setShowtimeToDelete(null);
       setErrorDialog({ 
         open: true, 
-        message: error.response?.data?.message || 'Lỗi khi xóa lịch chiếu' 
+        message: error.response?.data?.message || 'Lỗi khi xóa lịch chiếu',
+        code: error.response?.data?.code || ''
       });
     }
   };
@@ -174,14 +223,14 @@ export default function AdminShowtimesPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredShowtimes.length === 0 ? (
+            {paginatedShowtimes.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={9} className="text-center py-8 text-gray-500">
                   {searchTerm ? 'Không tìm thấy lịch chiếu nào' : 'Chưa có lịch chiếu nào'}
                 </TableCell>
               </TableRow>
             ) : (
-              filteredShowtimes.map((showtime) => (
+              paginatedShowtimes.map((showtime) => (
                 <TableRow key={showtime.id}>
                   <TableCell className="font-semibold max-w-[200px] break-words whitespace-normal">
                     {showtime.movie?.title || 'N/A'}
@@ -220,6 +269,84 @@ export default function AdminShowtimesPage() {
         </Table>
       </div>
 
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="mt-6 flex items-center justify-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => handlePageChange(1)}
+            disabled={currentPage === 1 || loading}
+            size="sm"
+          >
+            Đầu tiên
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1 || loading}
+            size="sm"
+          >
+            Trước
+          </Button>
+
+          {getPaginationNumbers().map((page, index) => (
+            <React.Fragment key={index}>
+              {page === '...' ? (
+                <span className="px-2 text-gray-500">...</span>
+              ) : (
+                <Button
+                  variant={currentPage === page ? 'default' : 'outline'}
+                  onClick={() => handlePageChange(page as number)}
+                  disabled={loading}
+                  size="sm"
+                  className={currentPage === page ? 'bg-red-600 hover:bg-red-700' : ''}
+                >
+                  {page}
+                </Button>
+              )}
+            </React.Fragment>
+          ))}
+
+          <Button
+            variant="outline"
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages || loading}
+            size="sm"
+          >
+            Tiếp theo
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => handlePageChange(totalPages)}
+            disabled={currentPage === totalPages || loading}
+            size="sm"
+          >
+            Cuối cùng
+          </Button>
+
+          <div className="ml-4 flex items-center gap-2">
+            <span className="text-sm text-gray-600">Đi đến:</span>
+            <Input
+              type="number"
+              min="1"
+              max={totalPages}
+              defaultValue={currentPage}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const page = parseInt((e.target as HTMLInputElement).value);
+                  handleGoToPage(page);
+                }
+              }}
+              className="w-16 h-10"
+            />
+          </div>
+
+          <div className="ml-4 text-sm text-gray-600">
+            Trang {currentPage} của {totalPages} ({filteredShowtimes.length} tổng cộng)
+          </div>
+        </div>
+      )}
+
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
@@ -251,7 +378,7 @@ export default function AdminShowtimesPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end">
-            <Button onClick={() => setErrorDialog({ open: false, message: '' })}>
+            <Button onClick={() => setErrorDialog({ open: false, message: '', code: '' })}>
               Đóng
             </Button>
           </div>

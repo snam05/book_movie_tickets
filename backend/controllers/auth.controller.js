@@ -2,6 +2,8 @@
 import { registerUser, loginUser } from '../services/auth.service.js';
 import User from '../models/User.model.js';
 import { destroySession } from '../services/session.service.js';
+import bcrypt from 'bcryptjs';
+import { Op } from 'sequelize';
 
 // --- HÀM XỬ LÝ LỖI CHUNG ---
 // Dùng để xử lý các lỗi ném ra từ Service và trả về phản hồi chuẩn 400 hoặc 500
@@ -133,16 +135,49 @@ export const verifyUser = async (req, res) => {
 
 export const updateProfile = async (req, res) => {
     try {
-        const { full_name, cccd_number } = req.body;
+        const { full_name, cccd_number, phone_number } = req.body;
         const userId = req.user.id; // Lấy từ verifyToken middleware
 
         // 1. Tìm user trong DB
         const user = await User.findByPk(userId);
         if (!user) return res.status(404).json({ success: false, message: "Không tìm thấy người dùng" });
 
-        // 2. Cập nhật thông tin mới
+        // 2. Kiểm tra CCCD trùng lặp (nếu có thay đổi)
+        if (cccd_number && cccd_number !== user.cccd_number) {
+            const existingCccd = await User.findOne({ 
+                where: { 
+                    cccd_number,
+                    id: { [Op.ne]: userId }
+                } 
+            });
+            if (existingCccd) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: "Số CCCD đã được sử dụng bởi người dùng khác" 
+                });
+            }
+        }
+
+        // 3. Kiểm tra số điện thoại trùng lặp (nếu có thay đổi)
+        if (phone_number && phone_number !== user.phone_number) {
+            const existingPhone = await User.findOne({ 
+                where: { 
+                    phone_number,
+                    id: { [Op.ne]: userId }
+                } 
+            });
+            if (existingPhone) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: "Số điện thoại đã được sử dụng bởi người dùng khác" 
+                });
+            }
+        }
+
+        // 4. Cập nhật thông tin mới
         user.full_name = full_name || user.full_name;
         user.cccd_number = cccd_number || user.cccd_number;
+        if (phone_number !== undefined) user.phone_number = phone_number;
         
         await user.save();
 
@@ -172,6 +207,7 @@ export const updateProfile = async (req, res) => {
 export const logout = async (req, res) => {
     try {
         const sessionToken = req.cookies.session_token;
+        const userId = req.user?.id;
         
         if (!sessionToken) {
             return res.status(400).json({
@@ -191,12 +227,78 @@ export const logout = async (req, res) => {
         });
 
         return res.status(200).json({
-            message: 'Đăng xuất thành công!'
+            message: 'Đăng xuất thành công!',
+            data: {
+                id: userId
+            }
         });
     } catch (error) {
         console.error('Logout Error:', error);
         return res.status(500).json({
             message: 'Lỗi khi đăng xuất',
+            error: error.message
+        });
+    }
+};
+
+// 5. Change Password - Đổi mật khẩu
+export const changePassword = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { currentPassword, newPassword } = req.body;
+
+        // Validate input
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({
+                message: 'Vui lòng nhập đầy đủ mật khẩu hiện tại và mật khẩu mới'
+            });
+        }
+
+        // Validate password strength
+        if (newPassword.length < 8) {
+            return res.status(400).json({
+                message: 'Mật khẩu mới phải có ít nhất 8 ký tự'
+            });
+        }
+
+        const hasUpperCase = /[A-Z]/.test(newPassword);
+        const hasLowerCase = /[a-z]/.test(newPassword);
+        const hasNumber = /[0-9]/.test(newPassword);
+        const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(newPassword);
+
+        if (!hasUpperCase || !hasLowerCase || !hasNumber || !hasSpecialChar) {
+            return res.status(400).json({
+                message: 'Mật khẩu mới phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt'
+            });
+        }
+
+        // Get user
+        const user = await User.findByPk(userId);
+        if (!user) {
+            return res.status(404).json({
+                message: 'Không tìm thấy người dùng'
+            });
+        }
+
+        // Verify current password
+        const isPasswordValid = await bcrypt.compare(currentPassword, user.password_hash);
+        if (!isPasswordValid) {
+            return res.status(400).json({
+                message: 'Mật khẩu hiện tại không đúng'
+            });
+        }
+
+        // Update password (model's beforeUpdate hook will hash it automatically)
+        await user.update({ password_hash: newPassword });
+
+        return res.status(200).json({
+            success: true,
+            message: 'Đổi mật khẩu thành công'
+        });
+    } catch (error) {
+        console.error('Change Password Error:', error);
+        return res.status(500).json({
+            message: 'Lỗi khi đổi mật khẩu',
             error: error.message
         });
     }

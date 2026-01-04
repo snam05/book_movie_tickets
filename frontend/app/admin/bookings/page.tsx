@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     AdminBooking,
     BookingStats,
@@ -47,6 +47,10 @@ export default function AdminBookingsPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [bookingStatusFilter, setBookingStatusFilter] = useState<string>('all');
     const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>('all');
+
+    // Pagination states
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize] = useState(10);
 
     // Dialog states
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -109,11 +113,57 @@ export default function AdminBookingsPage() {
         }
 
         setFilteredBookings(filtered);
+        setCurrentPage(1); // Reset to first page when filters change
     };
 
     useEffect(() => {
         handleSearch();
     }, [bookingStatusFilter, paymentStatusFilter, searchTerm]);
+
+    // Pagination helpers
+    const totalPages = Math.ceil(filteredBookings.length / pageSize);
+    const paginatedBookings = filteredBookings.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+    const getPaginationNumbers = () => {
+        const pages = [];
+        const maxVisible = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+        const endPage = Math.min(totalPages, startPage + maxVisible - 1);
+        
+        if (endPage - startPage + 1 < maxVisible) {
+            startPage = Math.max(1, endPage - maxVisible + 1);
+        }
+
+        if (startPage > 1) {
+            pages.push(1);
+            if (startPage > 2) pages.push('...');
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            pages.push(i);
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) pages.push('...');
+            pages.push(totalPages);
+        }
+
+        return pages;
+    };
+
+    const handlePageChange = (page: number) => {
+        if (page >= 1 && page <= totalPages) {
+            setCurrentPage(page);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    };
+
+    const handleGoToPage = (page: number) => {
+        if (page >= 1 && page <= totalPages) {
+            setCurrentPage(page);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    };
 
     const handleDeleteClick = (booking: AdminBooking) => {
         setSelectedBooking(booking);
@@ -249,7 +299,7 @@ export default function AdminBookingsPage() {
 
             {/* Stats Cards */}
             {stats && (
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                     <div className="bg-white rounded-lg shadow p-4">
                         <div className="flex items-center justify-between">
                             <div>
@@ -297,18 +347,6 @@ export default function AdminBookingsPage() {
                                 <p className="text-2xl font-bold text-green-600 mt-1">{stats.paid}</p>
                             </div>
                             <DollarSign className="h-8 w-8 text-green-500" />
-                        </div>
-                    </div>
-
-                    <div className="bg-white rounded-lg shadow p-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-gray-600 text-sm">Doanh thu</p>
-                                <p className="text-xl font-bold text-blue-600 mt-1">
-                                    {(stats.totalRevenue / 1000000).toFixed(1)}M
-                                </p>
-                            </div>
-                            <DollarSign className="h-8 w-8 text-blue-500" />
                         </div>
                     </div>
                 </div>
@@ -377,14 +415,14 @@ export default function AdminBookingsPage() {
                             </tr>
                         </thead>
                         <tbody>
-                        {filteredBookings.length === 0 ? (
+                        {paginatedBookings.length === 0 ? (
                             <tr>
                                 <td colSpan={9} className="text-center py-8 text-gray-500">
                                     {searchTerm ? 'Không tìm thấy booking nào' : 'Chưa có booking nào'}
                                 </td>
                             </tr>
                         ) : (
-                            filteredBookings.map((booking) => (
+                            paginatedBookings.map((booking) => (
                                 <tr key={booking.id} className="border-b hover:bg-gray-50">
                                     <td className="p-2">
                                         <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded block truncate">
@@ -456,6 +494,84 @@ export default function AdminBookingsPage() {
                 </table>
                 </div>
             </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+                <div className="mt-6 flex items-center justify-center gap-2 flex-wrap">
+                    <Button
+                        variant="outline"
+                        onClick={() => handlePageChange(1)}
+                        disabled={currentPage === 1 || loading}
+                        size="sm"
+                    >
+                        Đầu tiên
+                    </Button>
+                    <Button
+                        variant="outline"
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1 || loading}
+                        size="sm"
+                    >
+                        Trước
+                    </Button>
+
+                    {getPaginationNumbers().map((page, index) => (
+                        <React.Fragment key={index}>
+                            {page === '...' ? (
+                                <span className="px-2 text-gray-500">...</span>
+                            ) : (
+                                <Button
+                                    variant={currentPage === page ? 'default' : 'outline'}
+                                    onClick={() => handlePageChange(page as number)}
+                                    disabled={loading}
+                                    size="sm"
+                                    className={currentPage === page ? 'bg-red-600 hover:bg-red-700' : ''}
+                                >
+                                    {page}
+                                </Button>
+                            )}
+                        </React.Fragment>
+                    ))}
+
+                    <Button
+                        variant="outline"
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages || loading}
+                        size="sm"
+                    >
+                        Tiếp theo
+                    </Button>
+                    <Button
+                        variant="outline"
+                        onClick={() => handlePageChange(totalPages)}
+                        disabled={currentPage === totalPages || loading}
+                        size="sm"
+                    >
+                        Cuối cùng
+                    </Button>
+
+                    <div className="ml-4 flex items-center gap-2">
+                        <span className="text-sm text-gray-600">Đi đến:</span>
+                        <Input
+                            type="number"
+                            min="1"
+                            max={totalPages}
+                            defaultValue={currentPage}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    const page = parseInt((e.target as HTMLInputElement).value);
+                                    handleGoToPage(page);
+                                }
+                            }}
+                            className="w-16 h-10"
+                        />
+                    </div>
+
+                    <div className="ml-4 text-sm text-gray-600">
+                        Trang {currentPage} của {totalPages} ({filteredBookings.length} tổng cộng)
+                    </div>
+                </div>
+            )}
 
             {/* Detail Dialog */}
             <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>

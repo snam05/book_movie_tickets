@@ -13,6 +13,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { ArrowLeft, Upload, X, Eye } from 'lucide-react';
 import Link from 'next/link';
 
@@ -29,6 +36,7 @@ export default function CreateTheaterPage() {
   const [seatMapData, setSeatMapData] = useState<any>(null);
   const [jsonError, setJsonError] = useState<string>('');
   const [showPreview, setShowPreview] = useState(false);
+  const [errorDialog, setErrorDialog] = useState({ open: false, message: '' });
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -78,12 +86,12 @@ export default function CreateTheaterPage() {
     e.preventDefault();
     
     if (!formData.name || formData.total_seats <= 0) {
-      alert('Vui lòng điền đầy đủ thông tin');
+      setErrorDialog({ open: true, message: 'Vui lòng điền đầy đủ thông tin' });
       return;
     }
 
     if (!seatMapData) {
-      alert('Vui lòng upload file JSON sơ đồ ghế');
+      setErrorDialog({ open: true, message: 'Vui lòng upload file JSON sơ đồ ghế' });
       return;
     }
 
@@ -93,7 +101,10 @@ export default function CreateTheaterPage() {
       router.push('/admin/theaters');
     } catch (error: any) {
       console.error('Error creating theater:', error);
-      alert(error.response?.data?.message || 'Lỗi khi tạo rạp chiếu');
+      setErrorDialog({ 
+        open: true, 
+        message: error.response?.data?.message || 'Lỗi khi tạo rạp chiếu' 
+      });
     } finally {
       setLoading(false);
     }
@@ -428,6 +439,21 @@ export default function CreateTheaterPage() {
           </Button>
         </div>
       </form>
-    </div>
+      {/* Error Dialog */}
+      <Dialog open={errorDialog.open} onOpenChange={(open) => setErrorDialog({ ...errorDialog, open })}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>Thông báo</DialogTitle>
+            <DialogDescription className="text-red-600 font-medium">
+              {errorDialog.message}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end">
+            <Button onClick={() => setErrorDialog({ open: false, message: '' })}>
+              Đóng
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>    </div>
   );
 }

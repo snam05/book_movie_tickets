@@ -78,7 +78,9 @@ export const createShowtimeHandler = async (req, res) => {
         });
     } catch (error) {
         console.error('Error in createShowtime:', error);
-        if (error.message === 'Thiếu thông tin bắt buộc' || error.message.includes('Không tìm thấy')) {
+        if (error.message === 'Thiếu thông tin bắt buộc' || 
+            error.message.includes('Không tìm thấy') ||
+            error.message.includes('Xung đột lịch chiếu')) {
             res.status(400).json({
                 message: error.message
             });
@@ -108,7 +110,9 @@ export const updateShowtimeHandler = async (req, res) => {
         });
     } catch (error) {
         console.error('Error in updateShowtime:', error);
-        if (error.message === 'Không tìm thấy lịch chiếu' || error.message.includes('Không tìm thấy')) {
+        if (error.message === 'Không tìm thấy lịch chiếu' || 
+            error.message.includes('Không tìm thấy') ||
+            error.message.includes('Xung đột lịch chiếu')) {
             res.status(400).json({
                 message: error.message
             });

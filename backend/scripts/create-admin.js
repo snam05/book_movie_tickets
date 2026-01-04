@@ -1,5 +1,4 @@
 // @ts-nocheck
-import bcrypt from 'bcryptjs';
 import User from '../models/User.model.js';
 import { sequelize } from '../db.config.js';
 import dotenv from 'dotenv';
@@ -32,21 +31,14 @@ const createAdminAccount = async () => {
             console.log('Email:', existingAdmin.email);
             console.log('Role:', existingAdmin.role);
             
-            // Cập nhật mật khẩu mới
-            const salt = await bcrypt.genSalt(10);
-            const password_hash = await bcrypt.hash(adminData.password, salt);
-            
-            await existingAdmin.update({ password_hash });
+            // Cập nhật mật khẩu mới (hook sẽ tự động hash)
+            await existingAdmin.update({ password_hash: adminData.password });
             console.log('✅ Đã cập nhật mật khẩu mới cho admin!');
         } else {
-            // Hash mật khẩu
-            const salt = await bcrypt.genSalt(10);
-            const password_hash = await bcrypt.hash(adminData.password, salt);
-
-            // Tạo admin mới
+            // Tạo admin mới (hook sẽ tự động hash password)
             const newAdmin = await User.create({
                 email: adminData.email,
-                password_hash,
+                password_hash: adminData.password, // Truyền password thô, hook sẽ hash
                 full_name: adminData.full_name,
                 cccd_number: adminData.cccd_number,
                 date_of_birth: adminData.date_of_birth,

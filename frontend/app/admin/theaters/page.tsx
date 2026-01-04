@@ -32,6 +32,7 @@ export default function AdminTheatersPage() {
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [theaterToDelete, setTheaterToDelete] = useState<Theater | null>(null);
   const [theaterToToggle, setTheaterToToggle] = useState<Theater | null>(null);
+  const [errorDialog, setErrorDialog] = useState({ open: false, message: '' });
 
   useEffect(() => {
     loadTheaters();
@@ -44,7 +45,7 @@ export default function AdminTheatersPage() {
       setTheaters(data);
     } catch (error) {
       console.error('Error loading theaters:', error);
-      alert('Lỗi khi tải danh sách rạp chiếu');
+      setErrorDialog({ open: true, message: 'Lỗi khi tải danh sách rạp chiếu' });
     } finally {
       setLoading(false);
     }
@@ -55,13 +56,17 @@ export default function AdminTheatersPage() {
 
     try {
       await deleteTheater(theaterToDelete.id);
-      alert('Đã xóa rạp chiếu thành công');
       setDeleteDialogOpen(false);
       setTheaterToDelete(null);
       loadTheaters();
     } catch (error: any) {
       console.error('Error deleting theater:', error);
-      alert(error.response?.data?.message || 'Lỗi khi xóa rạp chiếu');
+      setDeleteDialogOpen(false);
+      setTheaterToDelete(null);
+      setErrorDialog({ 
+        open: true, 
+        message: error.response?.data?.message || 'Lỗi khi xóa rạp chiếu' 
+      });
     }
   };
 
@@ -82,8 +87,10 @@ export default function AdminTheatersPage() {
       loadTheaters();
     } catch (error: any) {
       console.error('Error updating status:', error);
+      setStatusDialogOpen(false);
+      setTheaterToToggle(null);
       const errorMessage = error.response?.data?.message || error.message || 'Lỗi khi cập nhật trạng thái';
-      alert(`Lỗi: ${errorMessage}`);
+      setErrorDialog({ open: true, message: errorMessage });
     }
   };
 
@@ -250,6 +257,23 @@ export default function AdminTheatersPage() {
               {theaterToToggle?.status === 'active' ? 'Chuyển sang bảo trì' : 'Kích hoạt'}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Error Dialog */}
+      <Dialog open={errorDialog.open} onOpenChange={(open) => setErrorDialog({ ...errorDialog, open })}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>Thông báo</DialogTitle>
+            <DialogDescription className="text-red-600 font-medium">
+              {errorDialog.message}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end">
+            <Button onClick={() => setErrorDialog({ open: false, message: '' })}>
+              Đóng
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

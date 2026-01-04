@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash VARCHAR(255) NOT NULL,
     full_name VARCHAR(100),
     cccd_number VARCHAR(20) NOT NULL UNIQUE,
+    phone_number VARCHAR(15),
     date_of_birth DATE,
     gender ENUM('male', 'female', 'other'),
     member_code VARCHAR(10) UNIQUE,

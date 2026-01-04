@@ -13,7 +13,7 @@ export interface User {
   date_of_birth?: string;
   gender?: string;
   member_code: string;
-  role: 'user' | 'admin';
+  role: 'customer' | 'admin';
   created_at: string;
   updated_at: string;
 }
@@ -61,7 +61,7 @@ export const getUserById = async (id: number): Promise<User> => {
 /**
  * Cập nhật role user (Admin only)
  */
-export const updateUserRole = async (id: number, role: 'user' | 'admin'): Promise<User> => {
+export const updateUserRole = async (id: number, role: 'customer' | 'admin'): Promise<User> => {
   try {
     const response = await axios.patch(`${API_URL}/admin/users/${id}/role`, { role }, {
       withCredentials: true
@@ -98,6 +98,70 @@ export const getUserStats = async (): Promise<UserStats> => {
     return response.data.data;
   } catch (error) {
     console.error('Error fetching user stats:', error);
+    throw error;
+  }
+};
+
+export interface CreateUserData {
+  email: string;
+  password: string;
+  full_name: string;
+  cccd_number: string;
+  phone_number?: string;
+  date_of_birth?: string;
+  gender?: string;
+  role?: 'customer' | 'admin';
+}
+
+/**
+ * Tạo user mới (Admin only)
+ */
+export const createUser = async (userData: CreateUserData): Promise<User> => {
+  try {
+    const response = await axios.post(`${API_URL}/admin/users`, userData, {
+      withCredentials: true
+    });
+    return response.data.data;
+  } catch (error) {
+    console.error('Error creating user:', error);
+    throw error;
+  }
+};
+
+export interface UpdateUserData {
+  email?: string;
+  full_name?: string;
+  phone_number?: string;
+  cccd_number?: string;
+  date_of_birth?: string;
+  gender?: string;
+}
+
+/**
+ * Cập nhật thông tin user (Admin only)
+ */
+export const updateUser = async (id: number, userData: UpdateUserData): Promise<User> => {
+  try {
+    const response = await axios.put(`${API_URL}/admin/users/${id}`, userData, {
+      withCredentials: true
+    });
+    return response.data.data;
+  } catch (error) {
+    console.error('Error updating user:', error);
+    throw error;
+  }
+};
+
+/**
+ * Đặt mật khẩu mới cho user (Admin only)
+ */
+export const setUserPassword = async (id: number, password: string): Promise<void> => {
+  try {
+    await axios.post(`${API_URL}/admin/users/${id}/password`, { password }, {
+      withCredentials: true
+    });
+  } catch (error) {
+    console.error('Error setting user password:', error);
     throw error;
   }
 };

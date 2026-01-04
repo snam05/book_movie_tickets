@@ -7,6 +7,33 @@ import Movie from '../models/Movie.model.js';
 import Theater from '../models/Theater.model.js';
 
 /**
+ * Cập nhật trạng thái booking dựa trên thời gian chiếu
+ */
+const updateBookingStatusBasedOnShowtime = async (booking) => {
+    if (!booking.showtime || !booking.showtime.movie) {
+        return booking;
+    }
+
+    const now = new Date();
+    const showtimeDateTime = new Date(`${booking.showtime.showtime_date}T${booking.showtime.showtime_time}`);
+    const duration = booking.showtime.movie.duration || 0;
+    const showtimeEndTime = new Date(showtimeDateTime.getTime() + duration * 60000);
+
+    // Nếu confirmed và đã qua thời gian chiếu → completed
+    if (booking.booking_status === 'confirmed' && now > showtimeEndTime) {
+        booking.booking_status = 'completed';
+        await booking.save();
+    }
+    // Nếu completed nhưng chưa đến thời gian chiếu → confirmed
+    else if (booking.booking_status === 'completed' && now <= showtimeEndTime) {
+        booking.booking_status = 'confirmed';
+        await booking.save();
+    }
+
+    return booking;
+};
+
+/**
  * Lấy tất cả bookings của user
  */
 export const getUserBookings = async (userId) => {
@@ -40,7 +67,12 @@ export const getUserBookings = async (userId) => {
             order: [['created_at', 'DESC']]
         });
 
-        return bookings;
+        // Cập nhật trạng thái cho từng booking
+        const updatedBookings = await Promise.all(
+            bookings.map(booking => updateBookingStatusBasedOnShowtime(booking))
+        );
+
+        return updatedBookings;
     } catch (error) {
         console.error('Error in getUserBookings:', error);
         throw error;
@@ -82,6 +114,10 @@ export const getBookingById = async (bookingId, userId) => {
                 }
             ]
         });
+
+        if (booking) {
+            await updateBookingStatusBasedOnShowtime(booking);
+        }
 
         return booking;
     } catch (error) {

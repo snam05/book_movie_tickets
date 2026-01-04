@@ -15,11 +15,20 @@ router.get('/stats', adminUserController.getUserStats);
 // GET /api/v1/admin/users - Lấy tất cả users
 router.get('/', adminUserController.getAllUsers);
 
+// POST /api/v1/admin/users - Tạo user mới
+router.post('/', adminUserController.createUser);
+
 // GET /api/v1/admin/users/:id - Lấy chi tiết user
 router.get('/:id', adminUserController.getUserById);
 
+// PUT /api/v1/admin/users/:id - Cập nhật user
+router.put('/:id', adminUserController.updateUser);
+
 // PATCH /api/v1/admin/users/:id/role - Cập nhật role
 router.patch('/:id/role', adminUserController.updateUserRole);
+
+// POST /api/v1/admin/users/:id/password - Đặt mật khẩu mới
+router.post('/:id/password', adminUserController.setUserPassword);
 
 // DELETE /api/v1/admin/users/:id - Xóa user
 router.delete('/:id', adminUserController.deleteUser);

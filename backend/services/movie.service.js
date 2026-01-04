@@ -122,24 +122,41 @@ export const getMovieById = async (movieId) => {
         throw new Error('Không tìm thấy phim');
     }
     
-    // Calculate available seats for each showtime
+    // Calculate available seats for each showtime and filter out completed ones
     if (movie.showtimes && movie.showtimes.length > 0) {
+        const now = new Date();
+        
         const showtimesWithSeats = await Promise.all(
             movie.showtimes.map(async (showtime) => {
                 const availableSeats = await calculateAvailableSeats(
                     showtime.id,
                     showtime.theater.total_seats
                 );
+                
+                // Calculate showtime end time (showtime_datetime + movie duration)
+                const showtimeDateTime = new Date(`${showtime.showtime_date}T${showtime.showtime_time}`);
+                const showtimeEndTime = new Date(showtimeDateTime.getTime() + movie.duration * 60000);
+                
                 return {
                     ...showtime.toJSON(),
-                    available_seats: availableSeats
+                    available_seats: availableSeats,
+                    isCompleted: now > showtimeEndTime
                 };
             })
         );
         
+        // Filter out completed showtimes (only show scheduled and showing)
+        const activeShowtimes = showtimesWithSeats.filter(st => !st.isCompleted);
+        
+        // Remove isCompleted flag before sending to client
+        const cleanShowtimes = activeShowtimes.map(st => {
+            const { isCompleted, ...rest } = st;
+            return rest;
+        });
+        
         // Replace showtimes with calculated data
         const movieJson = movie.toJSON();
-        movieJson.showtimes = showtimesWithSeats;
+        movieJson.showtimes = cleanShowtimes;
         return movieJson;
     }
     

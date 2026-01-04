@@ -1,10 +1,23 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { User, getAllUsers, deleteUser, updateUserRole, getUserStats, UserStats } from '@/lib/api/users';
+import { 
+  User, 
+  getAllUsers, 
+  deleteUser, 
+  updateUserRole, 
+  getUserStats, 
+  UserStats,
+  createUser,
+  updateUser,
+  setUserPassword,
+  CreateUserData,
+  UpdateUserData
+} from '@/lib/api/users';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Table,
   TableBody,
@@ -28,7 +41,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Trash2, Shield, User as UserIcon, Search, Users } from 'lucide-react';
+import { Trash2, Shield, User as UserIcon, Search, Users, Edit, Key, UserPlus } from 'lucide-react';
+import { format } from 'date-fns';
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -36,10 +50,45 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
+  
+  // Dialog states
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [userToToggleRole, setUserToToggleRole] = useState<User | null>(null);
+  const [userToEdit, setUserToEdit] = useState<User | null>(null);
+  const [userToSetPassword, setUserToSetPassword] = useState<User | null>(null);
+  
+  const [errorDialog, setErrorDialog] = useState({ open: false, message: '' });
+  const [successDialog, setSuccessDialog] = useState({ open: false, message: '' });
+
+  // Form states
+  const [createForm, setCreateForm] = useState<CreateUserData>({
+    email: '',
+    password: '',
+    full_name: '',
+    cccd_number: '',
+    phone_number: '',
+    date_of_birth: '',
+    gender: '',
+    role: 'customer'
+  });
+
+  const [editForm, setEditForm] = useState<UpdateUserData>({
+    email: '',
+    full_name: '',
+    phone_number: '',
+    cccd_number: '',
+    date_of_birth: '',
+    gender: ''
+  });
+
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   useEffect(() => {
     loadData();
@@ -57,9 +106,9 @@ export default function AdminUsersPage() {
     } catch (error: any) {
       console.error('Error loading data:', error);
       if (error.response?.status === 403) {
-        alert('Bạn không có quyền truy cập trang này');
+        setErrorDialog({ open: true, message: 'Bạn không có quyền truy cập trang này' });
       } else {
-        alert('Lỗi khi tải dữ liệu');
+        setErrorDialog({ open: true, message: 'Lỗi khi tải dữ liệu' });
       }
     } finally {
       setLoading(false);
@@ -77,10 +126,145 @@ export default function AdminUsersPage() {
       setUsers(data);
     } catch (error) {
       console.error('Error searching users:', error);
-      alert('Lỗi khi tìm kiếm');
+      setErrorDialog({ open: true, message: 'Lỗi khi tìm kiếm' });
     } finally {
       setLoading(false);
     }
+  };
+
+  // Create user handlers
+  const handleCreateClick = () => {
+    setCreateForm({
+      email: '',
+      password: '',
+      full_name: '',
+      cccd_number: '',
+      phone_number: '',
+      date_of_birth: '',
+      gender: '',
+      role: 'customer'
+    });
+    setCreateDialogOpen(true);
+  };
+
+  const handleCreateSubmit = async () => {
+    try {
+      if (!createForm.email || !createForm.password || !createForm.full_name || !createForm.cccd_number) {
+        setErrorDialog({ open: true, message: 'Vui lòng điền đầy đủ thông tin bắt buộc' });
+        return;
+      }
+
+      // Validate password: ít nhất 8 ký tự, có chữ hoa, thường, số, ký tự đặc biệt
+      const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+      if (!passRegex.test(createForm.password)) {
+        setErrorDialog({ 
+          open: true, 
+          message: 'Mật khẩu tối thiểu 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt (@$!%*?&)' 
+        });
+        return;
+      }
+
+      await createUser(createForm);
+      setCreateDialogOpen(false);
+      setSuccessDialog({ open: true, message: 'Tạo người dùng mới thành công' });
+      loadData();
+    } catch (error: any) {
+      console.error('Error creating user:', error);
+      setErrorDialog({ 
+        open: true, 
+        message: error.response?.data?.message || 'Lỗi khi tạo người dùng mới' 
+      });
+    }
+  };
+
+  // Edit user handlers
+  const handleEditClick = (user: User) => {
+    setUserToEdit(user);
+    setEditForm({
+      email: user.email,
+      full_name: user.full_name,
+      phone_number: user.phone_number || '',
+      cccd_number: user.cccd_number,
+      date_of_birth: user.date_of_birth || '',
+      gender: user.gender || ''
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleEditSubmit = async () => {
+    if (!userToEdit) return;
+
+    try {
+      if (!editForm.email || !editForm.full_name || !editForm.cccd_number) {
+        setErrorDialog({ open: true, message: 'Vui lòng điền đầy đủ thông tin bắt buộc' });
+        return;
+      }
+
+      await updateUser(userToEdit.id, editForm);
+      setEditDialogOpen(false);
+      setUserToEdit(null);
+      setSuccessDialog({ open: true, message: 'Cập nhật thông tin người dùng thành công' });
+      loadData();
+    } catch (error: any) {
+      console.error('Error updating user:', error);
+      setErrorDialog({ 
+        open: true, 
+        message: error.response?.data?.message || 'Lỗi khi cập nhật thông tin người dùng' 
+      });
+    }
+  };
+
+  // Password handlers
+  const handlePasswordClick = (user: User) => {
+    setUserToSetPassword(user);
+    setNewPassword('');
+    setConfirmPassword('');
+    setPasswordDialogOpen(true);
+  };
+
+  const handlePasswordSubmit = async () => {
+    if (!userToSetPassword) return;
+
+    try {
+      if (!newPassword) {
+        setErrorDialog({ open: true, message: 'Vui lòng nhập mật khẩu mới' });
+        return;
+      }
+
+      // Validate password: ít nhất 8 ký tự, có chữ hoa, thường, số, ký tự đặc biệt
+      const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+      if (!passRegex.test(newPassword)) {
+        setErrorDialog({ 
+          open: true, 
+          message: 'Mật khẩu tối thiểu 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt (@$!%*?&)' 
+        });
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        setErrorDialog({ open: true, message: 'Mật khẩu xác nhận không khớp' });
+        return;
+      }
+
+      await setUserPassword(userToSetPassword.id, newPassword);
+      setPasswordDialogOpen(false);
+      setUserToSetPassword(null);
+      setNewPassword('');
+      setConfirmPassword('');
+      setSuccessDialog({ open: true, message: 'Đặt mật khẩu mới thành công' });
+    } catch (error: any) {
+      console.error('Error setting password:', error);
+      setErrorDialog({ 
+        open: true, 
+        message: error.response?.data?.message || 'Lỗi khi đặt mật khẩu mới' 
+      });
+    }
+  };
+
+  // Delete handlers
+  const handleDeleteClick = (user: User) => {
+    setUserToDelete(user);
+    setDeleteDialogOpen(true);
   };
 
   const handleDelete = async () => {
@@ -88,16 +272,22 @@ export default function AdminUsersPage() {
 
     try {
       await deleteUser(userToDelete.id);
-      alert('Đã xóa người dùng thành công');
       setDeleteDialogOpen(false);
       setUserToDelete(null);
+      setSuccessDialog({ open: true, message: 'Xóa người dùng thành công' });
       loadData();
     } catch (error: any) {
       console.error('Error deleting user:', error);
-      alert(error.response?.data?.message || 'Lỗi khi xóa người dùng');
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
+      setErrorDialog({ 
+        open: true, 
+        message: error.response?.data?.message || 'Lỗi khi xóa người dùng' 
+      });
     }
   };
 
+  // Role handlers
   const handleToggleRoleClick = (user: User) => {
     setUserToToggleRole(user);
     setRoleDialogOpen(true);
@@ -107,15 +297,20 @@ export default function AdminUsersPage() {
     if (!userToToggleRole) return;
 
     try {
-      const newRole = userToToggleRole.role === 'admin' ? 'user' : 'admin';
+      const newRole = userToToggleRole.role === 'admin' ? 'customer' : 'admin';
       await updateUserRole(userToToggleRole.id, newRole);
-      alert('Đã cập nhật role thành công');
       setRoleDialogOpen(false);
       setUserToToggleRole(null);
+      setSuccessDialog({ open: true, message: 'Cập nhật quyền thành công' });
       loadData();
     } catch (error: any) {
       console.error('Error updating role:', error);
-      alert(error.response?.data?.message || 'Lỗi khi cập nhật role');
+      setRoleDialogOpen(false);
+      setUserToToggleRole(null);
+      setErrorDialog({ 
+        open: true, 
+        message: error.response?.data?.message || 'Lỗi khi cập nhật quyền' 
+      });
     }
   };
 
@@ -123,8 +318,17 @@ export default function AdminUsersPage() {
     return role === 'admin' ? (
       <Badge className="bg-amber-500 hover:bg-amber-600">Admin</Badge>
     ) : (
-      <Badge variant="outline">User</Badge>
+      <Badge variant="outline">Customer</Badge>
     );
+  };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return '-';
+    try {
+      return format(new Date(dateString), 'dd/MM/yyyy');
+    } catch {
+      return '-';
+    }
   };
 
   if (loading && !stats) {
@@ -141,9 +345,15 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Quản lý Người Dùng</h1>
-        <p className="text-gray-600 mt-1">Quản lý tài khoản người dùng trong hệ thống</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Quản lý Người Dùng</h1>
+          <p className="text-gray-600 mt-1">Quản lý tài khoản người dùng trong hệ thống</p>
+        </div>
+        <Button onClick={handleCreateClick} className="bg-red-600 hover:bg-red-700">
+          <UserPlus className="h-4 w-4 mr-2" />
+          Tạo người dùng mới
+        </Button>
       </div>
 
       {/* Stats Cards */}
@@ -201,7 +411,7 @@ export default function AdminUsersPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tất cả</SelectItem>
-              <SelectItem value="user">User</SelectItem>
+              <SelectItem value="customer">Customer</SelectItem>
               <SelectItem value="admin">Admin</SelectItem>
             </SelectContent>
           </Select>
@@ -221,6 +431,8 @@ export default function AdminUsersPage() {
               <TableHead>ID</TableHead>
               <TableHead>Họ tên</TableHead>
               <TableHead>Email</TableHead>
+              <TableHead>CCCD</TableHead>
+              <TableHead>Điện thoại</TableHead>
               <TableHead>Mã thành viên</TableHead>
               <TableHead>Role</TableHead>
               <TableHead className="text-right">Hành động</TableHead>
@@ -229,7 +441,7 @@ export default function AdminUsersPage() {
           <TableBody>
             {users.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={8} className="text-center py-8 text-gray-500">
                   Không tìm thấy người dùng
                 </TableCell>
               </TableRow>
@@ -239,6 +451,8 @@ export default function AdminUsersPage() {
                   <TableCell className="font-medium">{user.id}</TableCell>
                   <TableCell className="font-semibold">{user.full_name}</TableCell>
                   <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.cccd_number}</TableCell>
+                  <TableCell>{user.phone_number || '-'}</TableCell>
                   <TableCell>
                     <code className="text-xs bg-gray-100 px-2 py-1 rounded">{user.member_code}</code>
                   </TableCell>
@@ -248,18 +462,33 @@ export default function AdminUsersPage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleToggleRole(user)}
-                        title={user.role === 'admin' ? 'Chuyển sang user' : 'Chuyển sang admin'}
+                        onClick={() => handleEditClick(user)}
+                        title="Sửa thông tin"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handlePasswordClick(user)}
+                        title="Đặt mật khẩu"
+                      >
+                        <Key className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleToggleRoleClick(user)}
+                        title="Thay đổi quyền"
                       >
                         <Shield className="h-4 w-4" />
                       </Button>
                       <Button
                         size="sm"
-                        variant="destructive"
-                        onClick={() => {
-                          setUserToDelete(user);
-                          setDeleteDialogOpen(true);
-                        }}
+                        variant="outline"
+                        onClick={() => handleDeleteClick(user)}
+                        className="text-red-600 hover:text-red-700"
+                        title="Xóa người dùng"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -279,7 +508,8 @@ export default function AdminUsersPage() {
             <DialogTitle>Xác nhận xóa người dùng</DialogTitle>
             <DialogDescription>
               Bạn có chắc chắn muốn xóa người dùng <strong>{userToDelete?.full_name}</strong> ({userToDelete?.email})? 
-              Hành động này không thể hoàn tác.
+              <br />
+              <span className="text-red-600">Hành động này không thể hoàn tác!</span>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -287,7 +517,313 @@ export default function AdminUsersPage() {
               Hủy
             </Button>
             <Button variant="destructive" onClick={handleDelete}>
-              Xóa
+              Xóa người dùng
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Role Change Confirmation Dialog */}
+      <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xác nhận thay đổi quyền</DialogTitle>
+            <DialogDescription>
+              Bạn có chắc chắn muốn thay đổi quyền của <strong>{userToToggleRole?.full_name}</strong> từ{' '}
+              <strong>{userToToggleRole?.role === 'admin' ? 'Admin' : 'Customer'}</strong> sang{' '}
+              <strong>{userToToggleRole?.role === 'admin' ? 'Customer' : 'Admin'}</strong>?
+              {userToToggleRole?.role === 'admin' && (
+                <span className="block mt-2 text-orange-600 font-medium">
+                  ⚠️ Lưu ý: Người dùng sẽ mất quyền truy cập trang quản trị khi chuyển sang Customer.
+                </span>
+              )}
+              {userToToggleRole?.role === 'customer' && (
+                <span className="block mt-2 text-blue-600 font-medium">
+                  ℹ️ Lưu ý: Người dùng sẽ có toàn quyền quản trị hệ thống khi chuyển sang Admin.
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRoleDialogOpen(false)}>
+              Hủy
+            </Button>
+            <Button 
+              onClick={handleToggleRoleConfirm}
+              className="bg-amber-500 hover:bg-amber-600"
+            >
+              Xác nhận
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create User Dialog */}
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Tạo người dùng mới</DialogTitle>
+            <DialogDescription>
+              Nhập thông tin để tạo tài khoản người dùng mới
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="create-email">Email *</Label>
+                <Input
+                  id="create-email"
+                  type="email"
+                  value={createForm.email}
+                  onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
+                  placeholder="example@email.com"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="create-password">Mật khẩu *</Label>
+                <Input
+                  id="create-password"
+                  type="password"
+                  value={createForm.password}
+                  onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
+                  placeholder="Tối thiểu 8 ký tự"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="create-fullname">Họ và tên *</Label>
+              <Input
+                id="create-fullname"
+                value={createForm.full_name}
+                onChange={(e) => setCreateForm({ ...createForm, full_name: e.target.value })}
+                placeholder="Nguyễn Văn A"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="create-cccd">Số CCCD *</Label>
+                <Input
+                  id="create-cccd"
+                  value={createForm.cccd_number}
+                  onChange={(e) => setCreateForm({ ...createForm, cccd_number: e.target.value })}
+                  placeholder="001234567890"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="create-phone">Số điện thoại</Label>
+                <Input
+                  id="create-phone"
+                  value={createForm.phone_number}
+                  onChange={(e) => setCreateForm({ ...createForm, phone_number: e.target.value })}
+                  placeholder="0912345678"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="create-dob">Ngày sinh</Label>
+                <Input
+                  id="create-dob"
+                  type="date"
+                  value={createForm.date_of_birth}
+                  onChange={(e) => setCreateForm({ ...createForm, date_of_birth: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="create-gender">Giới tính</Label>
+                <Select 
+                  value={createForm.gender} 
+                  onValueChange={(value) => setCreateForm({ ...createForm, gender: value })}
+                >
+                  <SelectTrigger id="create-gender">
+                    <SelectValue placeholder="Chọn giới tính" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">Nam</SelectItem>
+                    <SelectItem value="female">Nữ</SelectItem>
+                    <SelectItem value="other">Khác</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="create-role">Quyền</Label>
+              <Select 
+                value={createForm.role} 
+                onValueChange={(value: 'customer' | 'admin') => setCreateForm({ ...createForm, role: value })}
+              >
+                <SelectTrigger id="create-role">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="customer">Customer</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+              Hủy
+            </Button>
+            <Button onClick={handleCreateSubmit} className="bg-red-600 hover:bg-red-700">
+              Tạo người dùng
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit User Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Cập nhật thông tin người dùng</DialogTitle>
+            <DialogDescription>
+              Chỉnh sửa thông tin của người dùng {userToEdit?.full_name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-email">Email *</Label>
+              <Input
+                id="edit-email"
+                type="email"
+                value={editForm.email}
+                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-fullname">Họ và tên *</Label>
+              <Input
+                id="edit-fullname"
+                value={editForm.full_name}
+                onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-cccd">Số CCCD *</Label>
+                <Input
+                  id="edit-cccd"
+                  value={editForm.cccd_number}
+                  onChange={(e) => setEditForm({ ...editForm, cccd_number: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-phone">Số điện thoại</Label>
+                <Input
+                  id="edit-phone"
+                  value={editForm.phone_number}
+                  onChange={(e) => setEditForm({ ...editForm, phone_number: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-dob">Ngày sinh</Label>
+                <Input
+                  id="edit-dob"
+                  type="date"
+                  value={editForm.date_of_birth}
+                  onChange={(e) => setEditForm({ ...editForm, date_of_birth: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-gender">Giới tính</Label>
+                <Select 
+                  value={editForm.gender} 
+                  onValueChange={(value) => setEditForm({ ...editForm, gender: value })}
+                >
+                  <SelectTrigger id="edit-gender">
+                    <SelectValue placeholder="Chọn giới tính" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">Nam</SelectItem>
+                    <SelectItem value="female">Nữ</SelectItem>
+                    <SelectItem value="other">Khác</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              Hủy
+            </Button>
+            <Button onClick={handleEditSubmit} className="bg-red-600 hover:bg-red-700">
+              Cập nhật
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Set Password Dialog */}
+      <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Đặt mật khẩu mới</DialogTitle>
+            <DialogDescription>
+              Đặt mật khẩu mới cho người dùng {userToSetPassword?.full_name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-password">Mật khẩu mới</Label>
+              <Input
+                id="new-password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Tối thiểu 8 ký tự"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm-password">Xác nhận mật khẩu</Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Nhập lại mật khẩu"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPasswordDialogOpen(false)}>
+              Hủy
+            </Button>
+            <Button onClick={handlePasswordSubmit} className="bg-red-600 hover:bg-red-700">
+              Đặt mật khẩu
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Error Dialog */}
+      <Dialog open={errorDialog.open} onOpenChange={(open) => setErrorDialog({ ...errorDialog, open })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-red-600">Lỗi</DialogTitle>
+            <DialogDescription>{errorDialog.message}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => setErrorDialog({ ...errorDialog, open: false })}>
+              Đóng
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Success Dialog */}
+      <Dialog open={successDialog.open} onOpenChange={(open) => setSuccessDialog({ ...successDialog, open })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-green-600">Thành công</DialogTitle>
+            <DialogDescription>{successDialog.message}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => setSuccessDialog({ ...successDialog, open: false })} className="bg-green-600 hover:bg-green-700">
+              Đóng
             </Button>
           </DialogFooter>
         </DialogContent>

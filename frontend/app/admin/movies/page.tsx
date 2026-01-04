@@ -35,6 +35,7 @@ export default function AdminMoviesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [movieToDelete, setMovieToDelete] = useState<MovieFromAPI | null>(null);
+  const [errorDialog, setErrorDialog] = useState({ open: false, message: '' });
 
   useEffect(() => {
     loadMovies();
@@ -47,7 +48,7 @@ export default function AdminMoviesPage() {
       setMovies(data);
     } catch (error) {
       console.error('Error loading movies:', error);
-      alert('Lỗi khi tải danh sách phim');
+      setErrorDialog({ open: true, message: 'Lỗi khi tải danh sách phim' });
     } finally {
       setLoading(false);
     }
@@ -61,7 +62,7 @@ export default function AdminMoviesPage() {
       setMovies(response.data.data);
     } catch (error) {
       console.error('Error searching movies:', error);
-      alert('Lỗi khi tìm kiếm');
+      setErrorDialog({ open: true, message: 'Lỗi khi tìm kiếm' });
     } finally {
       setLoading(false);
     }
@@ -79,7 +80,12 @@ export default function AdminMoviesPage() {
       loadMovies();
     } catch (error: any) {
       console.error('Error deleting movie:', error);
-      alert(error.response?.data?.message || 'Lỗi khi xóa phim');
+      setDeleteDialogOpen(false);
+      setMovieToDelete(null);
+      setErrorDialog({ 
+        open: true, 
+        message: error.response?.data?.message || 'Lỗi khi xóa phim' 
+      });
     }
   };
 
@@ -215,6 +221,23 @@ export default function AdminMoviesPage() {
               Xóa
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Error Dialog */}
+      <Dialog open={errorDialog.open} onOpenChange={(open) => setErrorDialog({ ...errorDialog, open })}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>Thông báo</DialogTitle>
+            <DialogDescription className="text-red-600 font-medium">
+              {errorDialog.message}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end">
+            <Button onClick={() => setErrorDialog({ open: false, message: '' })}>
+              Đóng
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -14,6 +14,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { ArrowLeft, Upload, X, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -42,6 +49,7 @@ export default function EditMoviePage() {
   const [selectedGenres, setSelectedGenres] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
+  const [errorDialog, setErrorDialog] = useState({ open: false, message: '' });
 
   const loadData = useCallback(async () => {
     try {
@@ -71,7 +79,7 @@ export default function EditMoviePage() {
       setSelectedGenres(movie.genres.map(g => g.id));
     } catch (error) {
       console.error('Error loading data:', error);
-      alert('Lỗi khi tải dữ liệu');
+      setErrorDialog({ open: true, message: 'Lỗi khi tải dữ liệu' });
     } finally {
       setPageLoading(false);
     }
@@ -124,7 +132,7 @@ export default function EditMoviePage() {
     e.preventDefault();
 
     if (!formData.title || !formData.duration) {
-      alert('Vui lòng điền tất cả thông tin bắt buộc');
+      setErrorDialog({ open: true, message: 'Vui lòng điền tất cả thông tin bắt buộc' });
       return;
     }
 
@@ -161,7 +169,7 @@ export default function EditMoviePage() {
         const axiosError = error as unknown as { response: { data: { message: string } } };
         errorMessage = axiosError?.response?.data?.message || error.message;
       }
-      alert(errorMessage);
+      setErrorDialog({ open: true, message: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -416,6 +424,23 @@ export default function EditMoviePage() {
             </Button>
           </div>
         </form>
+
+      {/* Error Dialog */}
+      <Dialog open={errorDialog.open} onOpenChange={(open) => setErrorDialog({ ...errorDialog, open })}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>Thông báo</DialogTitle>
+            <DialogDescription className="text-red-600 font-medium">
+              {errorDialog.message}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end">
+            <Button onClick={() => setErrorDialog({ open: false, message: '' })}>
+              Đóng
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

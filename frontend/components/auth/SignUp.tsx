@@ -28,6 +28,7 @@ export function SignUpForm({ className, onSignUpSuccess, ...props }: SignUpFormP
         matKhau: '', 
         cccd_number: '', 
     });
+    const [confirmPassword, setConfirmPassword] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string>('');
 
@@ -56,6 +57,11 @@ export function SignUpForm({ className, onSignUpSuccess, ...props }: SignUpFormP
         const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
         if (!passRegex.test(formData.matKhau)) {
             return "Mật khẩu tối thiểu 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.";
+        }
+
+        // Kiểm tra xác nhận mật khẩu
+        if (formData.matKhau !== confirmPassword) {
+            return "Mật khẩu xác nhận không khớp.";
         }
 
         return null;
@@ -164,10 +170,23 @@ export function SignUpForm({ className, onSignUpSuccess, ...props }: SignUpFormP
                                     id="matKhau" 
                                     name="matKhau"
                                     type="password" 
-                                    placeholder="••••••••"
+                                    placeholder="Tối thiểu 8 ký tự"
                                     required 
                                     value={formData.matKhau}
                                     onChange={handleChange}
+                                />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="confirmPassword">Xác nhận mật khẩu</Label>
+                                <Input 
+                                    id="confirmPassword" 
+                                    name="confirmPassword"
+                                    type="password" 
+                                    placeholder="Nhập lại mật khẩu"
+                                    required 
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
                                 />
                             </div>
 

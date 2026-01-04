@@ -29,6 +29,7 @@ export default function AdminShowtimesPage() {
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [showtimeToDelete, setShowtimeToDelete] = useState<Showtime | null>(null);
+  const [errorDialog, setErrorDialog] = useState({ open: false, message: '' });
 
   useEffect(() => {
     loadShowtimes();
@@ -41,7 +42,7 @@ export default function AdminShowtimesPage() {
       setShowtimes(data);
     } catch (error) {
       console.error('Error loading showtimes:', error);
-      alert('Lỗi khi tải danh sách lịch chiếu');
+      setErrorDialog({ open: true, message: 'Lỗi khi tải danh sách lịch chiếu' });
     } finally {
       setLoading(false);
     }
@@ -52,13 +53,17 @@ export default function AdminShowtimesPage() {
 
     try {
       await deleteShowtime(showtimeToDelete.id);
-      alert('Đã xóa lịch chiếu thành công');
       setDeleteDialogOpen(false);
       setShowtimeToDelete(null);
       loadShowtimes();
     } catch (error: any) {
       console.error('Error deleting showtime:', error);
-      alert(error.response?.data?.message || 'Lỗi khi xóa lịch chiếu');
+      setDeleteDialogOpen(false);
+      setShowtimeToDelete(null);
+      setErrorDialog({ 
+        open: true, 
+        message: error.response?.data?.message || 'Lỗi khi xóa lịch chiếu' 
+      });
     }
   };
 
@@ -194,6 +199,23 @@ export default function AdminShowtimesPage() {
               Xóa
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Error Dialog */}
+      <Dialog open={errorDialog.open} onOpenChange={(open) => setErrorDialog({ ...errorDialog, open })}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>Thông báo</DialogTitle>
+            <DialogDescription className="text-red-600 font-medium">
+              {errorDialog.message}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end">
+            <Button onClick={() => setErrorDialog({ open: false, message: '' })}>
+              Đóng
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

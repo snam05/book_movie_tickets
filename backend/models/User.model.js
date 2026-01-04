@@ -1,7 +1,8 @@
 // models/User.model.js
 
 import { DataTypes } from 'sequelize';
-import { sequelize } from '../db.config.js'; 
+import { sequelize } from '../db.config.js';
+import bcrypt from 'bcryptjs';
 
 // Định nghĩa Model User (Ánh xạ với bảng 'users' trong MySQL)
 const User = sequelize.define('User', {
@@ -55,12 +56,33 @@ const User = sequelize.define('User', {
         defaultValue: 'customer',
         allowNull: false,
         field: 'role'
+    },
+    phone_number: {
+        type: DataTypes.STRING(15),
+        allowNull: true,
+        field: 'phone_number'
     }
 }, {
     // 2. Cấu hình Model
     tableName: 'users', // Tên bảng chính xác là 'users' (chữ thường)
     timestamps: false, // Bỏ qua cột createdAt và updatedAt
-    freezeTableName: true // Ngăn Sequelize tự động thêm 's' vào tên bảng
+    freezeTableName: true, // Ngăn Sequelize tự động thêm 's' vào tên bảng
+    hooks: {
+        // Hook: Tự động hash password trước khi tạo user mới
+        beforeCreate: async (user) => {
+            if (user.password_hash) {
+                const salt = await bcrypt.genSalt(10);
+                user.password_hash = await bcrypt.hash(user.password_hash, salt);
+            }
+        },
+        // Hook: Tự động hash password trước khi cập nhật nếu password_hash thay đổi
+        beforeUpdate: async (user) => {
+            if (user.changed('password_hash')) {
+                const salt = await bcrypt.genSalt(10);
+                user.password_hash = await bcrypt.hash(user.password_hash, salt);
+            }
+        }
+    }
 });
 
 export default User;

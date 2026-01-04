@@ -41,12 +41,8 @@ export const registerUser = async (userData, ipAddress, userAgent) => {
     if (existingCccd) {
         throw new Error('Số CCCD đã tồn tại trong hệ thống.');
     }
-
-    // C. Băm mật khẩu (Hashing)
-    const salt = await bcrypt.genSalt(10); 
-    const password_hash = await bcrypt.hash(matKhau, salt); 
     
-    // D. Tạo mã thành viên duy nhất
+    // C. Tạo mã thành viên duy nhất
     let memberCode;
     let codeExists = true;
     while(codeExists) {
@@ -57,13 +53,14 @@ export const registerUser = async (userData, ipAddress, userAgent) => {
         }
     }
     
-    // E. Lưu người dùng mới vào DB
+    // D. Lưu người dùng mới vào DB
+    // Lưu ý: password_hash sẽ được tự động hash bởi hook beforeCreate trong User model
     const newUser = await User.create({
         ...rest, // Các trường còn lại (date_of_birth, gender...)
         email,
         cccd_number,
         full_name,
-        password_hash, // Lưu mật khẩu đã băm
+        password_hash: matKhau, // Truyền password thô, hook sẽ tự động hash
         member_code: memberCode
     });
 

@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export default function CreateShowtimePage() {
   const router = useRouter();
@@ -33,6 +34,7 @@ export default function CreateShowtimePage() {
   const [theaters, setTheaters] = useState<Theater[]>([]);
   const [loading, setLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
+  const [errorDialog, setErrorDialog] = useState({ open: false, message: '' });
 
   useEffect(() => {
     loadData();
@@ -45,11 +47,12 @@ export default function CreateShowtimePage() {
         getAllMovies(),
         getAllTheaters()
       ]);
-      setMovies(moviesData);
+      // Lọc bỏ phim đã kết thúc
+      setMovies(moviesData.filter(movie => movie.status !== 'ended'));
       setTheaters(theatersData);
     } catch (error) {
       console.error('Error loading data:', error);
-      alert('Lỗi khi tải dữ liệu');
+      setErrorDialog({ open: true, message: 'Lỗi khi tải dữ liệu' });
     } finally {
       setDataLoading(false);
     }
@@ -68,7 +71,7 @@ export default function CreateShowtimePage() {
     e.preventDefault();
 
     if (!formData.movie_id || !formData.theater_id || !formData.showtime_date || !formData.showtime_time || !formData.price) {
-      alert('Vui lòng điền tất cả thông tin bắt buộc');
+      setErrorDialog({ open: true, message: 'Vui lòng điền tất cả thông tin bắt buộc' });
       return;
     }
 
@@ -83,11 +86,13 @@ export default function CreateShowtimePage() {
         status: isCanceled ? 'canceled' : 'normal'
       });
 
-      alert('Đã thêm lịch chiếu thành công');
       router.push('/admin/showtimes');
     } catch (error: any) {
       console.error('Error creating showtime:', error);
-      alert(error.response?.data?.message || 'Lỗi khi thêm lịch chiếu');
+      setErrorDialog({ 
+        open: true, 
+        message: error.response?.data?.message || 'Lỗi khi thêm lịch chiếu' 
+      });
     } finally {
       setLoading(false);
     }
@@ -239,6 +244,23 @@ export default function CreateShowtimePage() {
           </div>
         </form>
       </div>
+
+      {/* Error Dialog */}
+      <Dialog open={errorDialog.open} onOpenChange={(open) => setErrorDialog({ ...errorDialog, open })}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>Thông báo</DialogTitle>
+            <DialogDescription className="text-red-600 font-medium">
+              {errorDialog.message}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end">
+            <Button onClick={() => setErrorDialog({ open: false, message: '' })}>
+              Đóng
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

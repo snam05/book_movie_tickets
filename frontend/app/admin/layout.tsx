@@ -30,11 +30,9 @@ export default function AdminLayout({
         if (data.user && data.user.role === 'admin') {
           setIsAdmin(true);
         } else {
-          alert('Bạn không có quyền truy cập trang này');
           router.push('/');
         }
       } else {
-        alert('Vui lòng đăng nhập');
         router.push('/auth/signin');
       }
     } catch (error) {

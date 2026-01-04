@@ -229,6 +229,68 @@ export const getShowtimeById = async (showtimeId) => {
 };
 
 /**
+ * Kiểm tra xung đột lịch chiếu
+ * @param {number} theaterId - ID rạp chiếu
+ * @param {string} showtimeDate - Ngày chiếu
+ * @param {string} showtimeTime - Giờ chiếu
+ * @param {number} duration - Thời lượng phim (phút)
+ * @param {number} excludeShowtimeId - ID suất chiếu cần loại trừ (khi update)
+ * @returns {Promise<Object|null>} Trả về thông tin suất chiếu bị trùng hoặc null
+ */
+const checkShowtimeConflict = async (theaterId, showtimeDate, showtimeTime, duration, excludeShowtimeId = null) => {
+    try {
+        // Tính thời gian bắt đầu và kết thúc của suất chiếu mới
+        const newStart = new Date(`${showtimeDate}T${showtimeTime}`);
+        const newEnd = new Date(newStart.getTime() + duration * 60000);
+
+        // Lấy tất cả suất chiếu trong cùng rạp và cùng ngày
+        const existingShowtimes = await Showtime.findAll({
+            attributes: ['id', 'movie_id', 'showtime_date', 'showtime_time'],
+            where: {
+                theater_id: theaterId,
+                showtime_date: showtimeDate,
+                status: 'normal',
+                ...(excludeShowtimeId && { id: { [Op.ne]: excludeShowtimeId } })
+            },
+            include: [
+                {
+                    model: Movie,
+                    as: 'movie',
+                    attributes: ['id', 'title', 'duration']
+                }
+            ]
+        });
+
+        // Kiểm tra xung đột với từng suất chiếu hiện có
+        for (const existingShowtime of existingShowtimes) {
+            const existingStart = new Date(`${existingShowtime.showtime_date}T${existingShowtime.showtime_time}`);
+            const existingEnd = new Date(existingStart.getTime() + existingShowtime.movie.duration * 60000);
+
+            // Kiểm tra overlap:
+            // 1. Suất mới bắt đầu trong khoảng suất cũ: newStart >= existingStart && newStart < existingEnd
+            // 2. Suất mới kết thúc trong khoảng suất cũ: newEnd > existingStart && newEnd <= existingEnd
+            // 3. Suất mới bao trùm suất cũ: newStart <= existingStart && newEnd >= existingEnd
+            const hasConflict = 
+                (newStart >= existingStart && newStart < existingEnd) ||
+                (newEnd > existingStart && newEnd <= existingEnd) ||
+                (newStart <= existingStart && newEnd >= existingEnd);
+
+            if (hasConflict) {
+                return {
+                    conflictShowtime: existingShowtime,
+                    conflictMovie: existingShowtime.movie
+                };
+            }
+        }
+
+        return null; // Không có xung đột
+    } catch (error) {
+        console.error('Error checking showtime conflict:', error);
+        throw error;
+    }
+};
+
+/**
  * Tạo lịch chiếu mới
  * @param {Object} showtimeData - Dữ liệu lịch chiếu
  * @returns {Promise<Object>} Lịch chiếu đã tạo
@@ -252,6 +314,22 @@ export const createShowtime = async (showtimeData) => {
         const theater = await Theater.findByPk(theater_id);
         if (!theater) {
             throw new Error('Không tìm thấy rạp chiếu');
+        }
+
+        // Kiểm tra xung đột lịch chiếu
+        const conflict = await checkShowtimeConflict(
+            theater_id,
+            showtime_date,
+            showtime_time,
+            movie.duration
+        );
+
+        if (conflict) {
+            const conflictTime = conflict.conflictShowtime.showtime_time.substring(0, 5);
+            throw new Error(
+                `Xung đột lịch chiếu! Rạp đã có suất chiếu phim "${conflict.conflictMovie.title}" ` +
+                `vào lúc ${conflictTime} cùng ngày. Vui lòng chọn thời gian khác.`
+            );
         }
 
         // Tạo lịch chiếu mới
@@ -319,6 +397,44 @@ export const updateShowtime = async (showtimeId, showtimeData) => {
             }
         } else if (showtimeData.theater_id) {
             theater = await Theater.findByPk(showtimeData.theater_id);
+        }
+
+        // Kiểm tra xung đột lịch chiếu nếu có thay đổi về thời gian, rạp hoặc phim
+        const hasTimeChange = showtimeData.showtime_date || showtimeData.showtime_time;
+        const hasTheaterChange = showtimeData.theater_id && showtimeData.theater_id !== showtime.theater_id;
+        const hasMovieChange = showtimeData.movie_id && showtimeData.movie_id !== showtime.movie_id;
+
+        if (hasTimeChange || hasTheaterChange || hasMovieChange) {
+            // Lấy thông tin phim để biết duration
+            const movieId = showtimeData.movie_id || showtime.movie_id;
+            const movie = await Movie.findByPk(movieId, {
+                attributes: ['id', 'title', 'duration']
+            });
+
+            if (!movie) {
+                throw new Error('Không tìm thấy phim');
+            }
+
+            const theaterId = showtimeData.theater_id || showtime.theater_id;
+            const showtimeDate = showtimeData.showtime_date || showtime.showtime_date;
+            const showtimeTime = showtimeData.showtime_time || showtime.showtime_time;
+
+            // Kiểm tra xung đột (loại trừ chính suất chiếu đang sửa)
+            const conflict = await checkShowtimeConflict(
+                theaterId,
+                showtimeDate,
+                showtimeTime,
+                movie.duration,
+                showtimeId
+            );
+
+            if (conflict) {
+                const conflictTime = conflict.conflictShowtime.showtime_time.substring(0, 5);
+                throw new Error(
+                    `Xung đột lịch chiếu! Rạp đã có suất chiếu phim "${conflict.conflictMovie.title}" ` +
+                    `vào lúc ${conflictTime} cùng ngày. Vui lòng chọn thời gian khác.`
+                );
+            }
         }
 
         // Cập nhật các trường

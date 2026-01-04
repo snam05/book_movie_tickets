@@ -163,7 +163,7 @@ export default function AdminMoviesPage() {
               movies.map((movie) => (
                 <TableRow key={movie.id}>
                   <TableCell className="font-medium">{movie.id}</TableCell>
-                  <TableCell className="font-semibold">{movie.title}</TableCell>
+                  <TableCell className="font-semibold max-w-[200px] break-words whitespace-normal">{movie.title}</TableCell>
                   <TableCell>{movie.duration} phút</TableCell>
                   <TableCell>
                     <Badge variant="outline">⭐ {movie.rating || 'N/A'}</Badge>

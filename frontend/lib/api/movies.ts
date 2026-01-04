@@ -1,7 +1,7 @@
 // frontend/lib/api/movies.ts
 // API service cho movies
 
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/api/v1';
 
@@ -56,7 +56,7 @@ export interface MoviesResponse {
  */
 export const getAllMovies = async (): Promise<MovieFromAPI[]> => {
   try {
-    const response = await axios.get<MoviesResponse>(`${API_URL}/movies`);
+    const response = await axios.get<any, AxiosResponse<MoviesResponse>>(`${API_URL}/movies`);
     return response.data.data;
   } catch (error) {
     console.error('Error fetching all movies:', error);
@@ -69,7 +69,7 @@ export const getAllMovies = async (): Promise<MovieFromAPI[]> => {
  */
 export const getNowShowingMovies = async (): Promise<MovieFromAPI[]> => {
   try {
-    const response = await axios.get<MoviesResponse>(`${API_URL}/movies/now-showing`);
+    const response = await axios.get<any, AxiosResponse<MoviesResponse>>(`${API_URL}/movies/now-showing`);
     return response.data.data;
   } catch (error) {
     console.error('Error fetching now showing movies:', error);
@@ -82,7 +82,7 @@ export const getNowShowingMovies = async (): Promise<MovieFromAPI[]> => {
  */
 export const getComingSoonMovies = async (): Promise<MovieFromAPI[]> => {
   try {
-    const response = await axios.get<MoviesResponse>(`${API_URL}/movies/coming-soon`);
+    const response = await axios.get<any, AxiosResponse<MoviesResponse>>(`${API_URL}/movies/coming-soon`);
     return response.data.data;
   } catch (error) {
     console.error('Error fetching coming soon movies:', error);
@@ -95,7 +95,7 @@ export const getComingSoonMovies = async (): Promise<MovieFromAPI[]> => {
  */
 export const getMovieById = async (id: number): Promise<MovieFromAPI> => {
   try {
-    const response = await axios.get<{ message: string; data: MovieFromAPI }>(`${API_URL}/movies/${id}`);
+    const response = await axios.get<any, AxiosResponse<{ message: string; data: MovieFromAPI }>>(`${API_URL}/movies/${id}`);
     return response.data.data;
   } catch (error) {
     console.error(`Error fetching movie ${id}:`, error);
@@ -108,7 +108,7 @@ export const getMovieById = async (id: number): Promise<MovieFromAPI> => {
  */
 export const createMovie = async (formData: FormData): Promise<MovieFromAPI> => {
   try {
-    const response = await axios.post<{ message: string; data: MovieFromAPI }>(`${API_URL}/movies`, formData, {
+    const response = await axios.post<any, AxiosResponse<{ message: string; data: MovieFromAPI }>>(`${API_URL}/movies`, formData, {
       withCredentials: true,
       headers: {
         'Content-Type': 'multipart/form-data',
@@ -126,7 +126,7 @@ export const createMovie = async (formData: FormData): Promise<MovieFromAPI> => 
  */
 export const updateMovie = async (id: number, formData: FormData): Promise<MovieFromAPI> => {
   try {
-    const response = await axios.put<{ message: string; data: MovieFromAPI }>(`${API_URL}/movies/${id}`, formData, {
+    const response = await axios.put<any, AxiosResponse<{ message: string; data: MovieFromAPI }>>(`${API_URL}/movies/${id}`, formData, {
       withCredentials: true,
       headers: {
         'Content-Type': 'multipart/form-data',

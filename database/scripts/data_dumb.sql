@@ -137,80 +137,106 @@ INSERT INTO theaters (name, total_seats, theater_type, status, seat_map) VALUES
 -- =============================================
 -- 6. INSERT DATA: SHOWTIMES (Suất chiếu)
 -- =============================================
+-- LƯU Ý VỀ TRẠNG THÁI:
+-- - Database chỉ lưu 2 giá trị: 'normal' và 'canceled'
+-- - Backend tự động tính display_status dựa trên:
+--   + now < showtime_datetime => 'scheduled' (Lên lịch)
+--   + now >= showtime_datetime AND now <= (showtime_datetime + duration) => 'showing' (Đang chiếu)
+--   + now > (showtime_datetime + duration) => 'completed' (Đã kết thúc)
+--   + status = 'canceled' => 'canceled' (Đã hủy)
 
-INSERT INTO showtimes (movie_id, theater_id, showtime_date, showtime_time, price, available_seats, status) VALUES
+INSERT INTO showtimes (movie_id, theater_id, showtime_date, showtime_time, price, status) VALUES
 -- Avengers: Endgame
-(1, 1, '2026-01-05', '10:00:00', 80000, 60, 'scheduled'),
-(1, 2, '2026-01-05', '14:00:00', 80000, 60, 'scheduled'),
-(1, 4, '2026-01-05', '20:00:00', 150000, 120, 'scheduled'),
-(1, 1, '2026-01-06', '10:00:00', 80000, 60, 'scheduled'),
-(1, 4, '2026-01-06', '20:00:00', 150000, 120, 'scheduled'),
+(1, 1, '2026-01-05', '10:00:00', 80000, 'normal'),
+(1, 2, '2026-01-05', '14:00:00', 80000, 'normal'),
+(1, 4, '2026-01-05', '20:00:00', 150000, 'normal'),
+(1, 1, '2026-01-06', '10:00:00', 80000, 'normal'),
+(1, 4, '2026-01-06', '20:00:00', 150000, 'normal'),
 
 -- Spider-Man: No Way Home
-(2, 2, '2026-01-05', '10:30:00', 85000, 60, 'scheduled'),
-(2, 5, '2026-01-05', '15:00:00', 120000, 60, 'scheduled'),
-(2, 3, '2026-01-05', '21:00:00', 130000, 40, 'scheduled'),
-(2, 2, '2026-01-06', '10:30:00', 85000, 60, 'scheduled'),
+(2, 2, '2026-01-05', '10:30:00', 85000, 'normal'),
+(2, 5, '2026-01-05', '15:00:00', 120000, 'normal'),
+(2, 3, '2026-01-05', '21:00:00', 130000, 'normal'),
+(2, 2, '2026-01-06', '10:30:00', 85000, 'normal'),
 
 -- The Conjuring 3
-(3, 1, '2026-01-05', '22:00:00', 90000, 60, 'scheduled'),
-(3, 2, '2026-01-06', '22:00:00', 90000, 60, 'scheduled'),
+(3, 1, '2026-01-05', '22:00:00', 90000, 'normal'),
+(3, 2, '2026-01-06', '22:00:00', 90000, 'normal'),
 
 -- Doraemon
-(4, 6, '2026-01-05', '09:00:00', 70000, 48, 'scheduled'),
-(4, 6, '2026-01-05', '11:00:00', 70000, 48, 'scheduled'),
-(4, 6, '2026-01-05', '14:00:00', 70000, 48, 'scheduled'),
-(4, 6, '2026-01-06', '09:00:00', 70000, 48, 'scheduled'),
+(4, 6, '2026-01-05', '09:00:00', 70000, 'normal'),
+(4, 6, '2026-01-05', '11:00:00', 70000, 'normal'),
+(4, 6, '2026-01-05', '14:00:00', 70000, 'normal'),
+(4, 6, '2026-01-06', '09:00:00', 70000, 'normal'),
 
 -- Mai
-(5, 3, '2026-01-05', '18:00:00', 120000, 40, 'scheduled'),
-(5, 3, '2026-01-06', '18:00:00', 120000, 40, 'scheduled'),
+(5, 3, '2026-01-05', '18:00:00', 120000, 'normal'),
+(5, 3, '2026-01-06', '18:00:00', 120000, 'normal'),
 
 -- Inception
-(6, 4, '2026-01-05', '16:00:00', 150000, 120, 'scheduled'),
-(6, 5, '2026-01-06', '16:00:00', 120000, 60, 'scheduled'),
+(6, 4, '2026-01-05', '16:00:00', 150000, 'normal'),
+(6, 5, '2026-01-06', '16:00:00', 120000, 'normal'),
 
 -- Parasite
-(7, 1, '2026-01-05', '18:30:00', 75000, 60, 'scheduled');
+(7, 1, '2026-01-05', '18:30:00', 75000, 'normal');
 
 -- =============================================
 -- 7. INSERT DATA: BOOKINGS (Đặt vé mẫu)
 -- =============================================
 
 INSERT INTO bookings (user_id, showtime_id, booking_code, total_seats, total_price, booking_status, payment_status, payment_method, payment_date) VALUES
+-- Showtime 1 (Theater 1 - 60 seats, Avengers): Booking 2 seats
 (3, 1, 'BK20251224001', 2, 160000, 'confirmed', 'paid', 'momo', '2025-12-23 14:30:00'),
+-- Showtime 2 (Theater 2 - 60 seats, Spider-Man): Booking 3 seats
 (4, 2, 'BK20251224002', 3, 240000, 'confirmed', 'paid', 'vnpay', '2025-12-23 15:45:00'),
-(5, 7, 'BK20251224003', 2, 240000, 'confirmed', 'paid', 'card', '2025-12-23 16:20:00'),
+-- Showtime 5 (Theater 1 - 60 seats, Avengers): Booking 2 seats
+(5, 5, 'BK20251224003', 2, 240000, 'confirmed', 'paid', 'card', '2025-12-23 16:20:00'),
+-- Showtime 12 (Theater 6 - 48 seats, Doraemon): Booking 4 seats
 (6, 12, 'BK20251224004', 4, 280000, 'pending', 'unpaid', NULL, NULL),
-(7, 3, 'BK20251224005', 2, 300000, 'confirmed', 'paid', 'zalopay', '2025-12-24 09:15:00');
+-- Showtime 3 (Theater 4 - 120 seats, Avengers IMAX): Booking 2 seats
+(7, 3, 'BK20251224005', 2, 300000, 'confirmed', 'paid', 'zalopay', '2025-12-24 09:15:00'),
+-- Showtime 7 (Theater 5 - 60 seats, Spider-Man 3D): Booking 2 seats
+(8, 7, 'BK20251224006', 2, 240000, 'confirmed', 'paid', 'momo', '2025-12-24 10:00:00');
 
 -- =============================================
 -- 8. INSERT DATA: BOOKED_SEATS (Ghế đã đặt)
 -- =============================================
+-- Mỗi ghế chỉ được đặt 1 lần cho mỗi showtime
+-- Ghế phải khớp với seat_map của phòng chiếu tương ứng
 
 INSERT INTO booked_seats (booking_id, seat_row, seat_number, seat_type, seat_price) VALUES
--- Booking 1 (BK20251224001) - 2 ghế
-(1, 'E', 5, 'standard', 80000),
-(1, 'E', 6, 'standard', 80000),
+-- Booking 1 (BK20251224001): Showtime 1, Theater 1 (A-H rows, 10/5 seats per row)
+-- Ghế ở hàng A (standard, seats 1-10)
+(1, 'A', 5, 'standard', 80000),
+(1, 'A', 6, 'standard', 80000),
 
--- Booking 2 (BK20251224002) - 3 ghế
-(2, 'F', 7, 'standard', 80000),
-(2, 'F', 8, 'standard', 80000),
-(2, 'F', 9, 'standard', 80000),
+-- Booking 2 (BK20251224002): Showtime 2, Theater 2 (A-H rows, 10/5 seats per row)
+-- Ghế ở hàng B (standard, seats 1-10)
+(2, 'B', 7, 'standard', 80000),
+(2, 'B', 8, 'standard', 80000),
+(2, 'B', 9, 'standard', 80000),
 
--- Booking 3 (BK20251224003) - 2 ghế VIP
-(3, 'D', 10, 'vip', 120000),
-(3, 'D', 11, 'vip', 120000),
+-- Booking 3 (BK20251224003): Showtime 5, Theater 1 (A-H rows, 10/5 seats per row)
+-- Ghế ở hàng E (vip, seats 1-10)
+(3, 'E', 3, 'vip', 80000),
+(3, 'E', 4, 'vip', 80000),
 
--- Booking 4 (BK20251224004) - 4 ghế
+-- Booking 4 (BK20251224004): Showtime 12, Theater 6 (A-F rows, 8 seats per row)
+-- Ghế ở hàng C (standard, seats 1-8)
 (4, 'C', 3, 'standard', 70000),
 (4, 'C', 4, 'standard', 70000),
 (4, 'C', 5, 'standard', 70000),
 (4, 'C', 6, 'standard', 70000),
 
--- Booking 5 (BK20251224005) - 2 ghế IMAX
-(5, 'G', 15, 'standard', 150000),
-(5, 'G', 16, 'standard', 150000);
+-- Booking 5 (BK20251224005): Showtime 3, Theater 4 IMAX (A-J rows, 12 seats per row)
+-- Ghế ở hàng D (vip, seats 1-12)
+(5, 'D', 5, 'vip', 150000),
+(5, 'D', 6, 'vip', 150000),
+
+-- Booking 6 (BK20251224006): Showtime 7, Theater 5 3D (A-H rows, 10/5 seats per row)
+-- Ghế ở hàng F (vip, seats 1-10)
+(6, 'F', 2, 'vip', 120000),
+(6, 'F', 3, 'vip', 120000);
 
 -- =============================================
 -- HOÀN THÀNH - DỮ LIỆU MẪU ĐÃ ĐƯỢC THÊM VÀO

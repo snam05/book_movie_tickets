@@ -107,6 +107,10 @@ CREATE TABLE IF NOT EXISTS theaters (
 -- 6. BẢNG SUẤT CHIẾU (SHOWTIMES)
 -- =============================================
 -- Lưu trữ lịch chiếu phim tại các phòng chiếu
+-- LƯU Ý: status chỉ lưu 2 giá trị: 'normal' và 'canceled'
+-- Trạng thái hiển thị (scheduled/showing/completed) được tính động dựa trên:
+--   - Thời gian chiếu so với thời điểm hiện tại
+--   - Thời lượng phim (duration từ bảng movies)
 
 CREATE TABLE IF NOT EXISTS showtimes (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -115,8 +119,7 @@ CREATE TABLE IF NOT EXISTS showtimes (
     showtime_date DATE NOT NULL,
     showtime_time TIME NOT NULL,
     price DECIMAL(10, 2) NOT NULL COMMENT 'Giá vé cho suất chiếu này',
-    available_seats INT NOT NULL,
-    status ENUM('scheduled', 'showing', 'finished', 'cancelled') DEFAULT 'scheduled',
+    status ENUM('normal', 'canceled') DEFAULT 'normal' COMMENT 'normal: bình thường, canceled: đã hủy',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (movie_id) REFERENCES movies(id) ON DELETE CASCADE,
@@ -194,41 +197,11 @@ CREATE TABLE IF NOT EXISTS sessions (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
--- TRIGGERS
+-- NOTES: TRIGGERS REMOVED
 -- =============================================
-
--- Trigger: Tự động cập nhật số ghế còn trống khi có booking mới
-DELIMITER $$
-
-CREATE TRIGGER after_booking_insert
-AFTER INSERT ON bookings
-FOR EACH ROW
-BEGIN
-    UPDATE showtimes 
-    SET available_seats = available_seats - NEW.total_seats
-    WHERE id = NEW.showtime_id;
-END$$
-
--- Trigger: Tự động cập nhật số ghế khi hủy booking
-CREATE TRIGGER after_booking_cancel
-AFTER UPDATE ON bookings
-FOR EACH ROW
-BEGIN
-    IF NEW.booking_status = 'cancelled' AND OLD.booking_status != 'cancelled' THEN
-        UPDATE showtimes 
-        SET available_seats = available_seats + NEW.total_seats
-        WHERE id = NEW.showtime_id;
-    END IF;
-END$$
-
--- ⚠️  LƯU Ý VỀ SESSION TRIGGER:
--- Trigger before_session_insert (đảm bảo mỗi user chỉ có 1 session active) đã bị xóa vì gây lỗi MySQL:
--- "Can't update table 'sessions' in stored function/trigger because it is already used by statement"
--- 
--- ✅ GIẢI PHÁP: Logic xóa session cũ đã được chuyển vào code trong services/session.service.js (createSession function)
--- Khi tạo session mới, code sẽ tự động xóa các session cũ của user trước.
-
-DELIMITER ;
+-- All triggers related to available_seats have been removed.
+-- Available seats are now calculated dynamically from bookings.
+-- Dynamic status (scheduled/showing/completed/canceled) is calculated server-side.
 
 -- =============================================
 -- STORED PROCEDURES

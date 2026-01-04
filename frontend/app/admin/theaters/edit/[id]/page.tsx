@@ -347,37 +347,111 @@ export default function EditTheaterPage() {
           
           {/* Example format */}
           <details className="text-sm">
-            <summary className="cursor-pointer text-gray-600 hover:text-gray-900">
-              Xem ví dụ format JSON
+            <summary className="cursor-pointer text-gray-600 hover:text-gray-900 font-medium">
+              Xem ví dụ format JSON hoàn chỉnh
             </summary>
-            <pre className="mt-2 p-3 bg-gray-50 rounded border text-xs overflow-auto">
+            <pre className="mt-2 p-3 bg-gray-50 rounded border text-xs overflow-auto max-h-96">
 {`{
-  "rows": [
-    {
-      "row": "A",
-      "seats": [
-        { "seat": "A1", "type": "standard" },
-        { "seat": "A2", "type": "standard" },
-        { "seat": "A3", "type": "couple" },
-        { "seat": "A4", "type": "couple" },
-        { "seat": "A5", "type": "vip" },
-        { "type": "empty" }
-      ]
-    },
-    {
-      "row": "B",
-      "seats": [
-        { "seat": "B1", "type": "standard" },
-        { "seat": "B2", "type": "standard" }
-      ]
-    }
-  ]
+  "rows": ["A", "B", "C", "D", "E", "F"],
+  "seatsPerRow": 10,
+  "layout": [
+    [
+      { "id": "A1", "row": "A", "number": 1, "type": "standard" },
+      { "id": "A2", "row": "A", "number": 2, "type": "standard" },
+      { "id": "A3", "row": "A", "number": 3, "type": "standard" },
+      { "id": "A4", "row": "A", "number": 4, "type": "standard" },
+      { "id": "A5", "row": "A", "number": 5, "type": "standard" },
+      { "id": "A6", "row": "A", "number": 6, "type": "standard" },
+      { "id": "A7", "row": "A", "number": 7, "type": "standard" },
+      { "id": "A8", "row": "A", "number": 8, "type": "standard" },
+      { "id": "A9", "row": "A", "number": 9, "type": "standard" },
+      { "id": "A10", "row": "A", "number": 10, "type": "standard" }
+    ],
+    [
+      { "id": "B1", "row": "B", "number": 1, "type": "standard" },
+      { "id": "B2", "row": "B", "number": 2, "type": "standard" },
+      { "id": "B3", "row": "B", "number": 3, "type": "standard" },
+      { "id": "B4", "row": "B", "number": 4, "type": "standard" },
+      { "id": "B5", "row": "B", "number": 5, "type": "standard" },
+      { "id": "B6", "row": "B", "number": 6, "type": "standard" },
+      { "id": "B7", "row": "B", "number": 7, "type": "standard" },
+      { "id": "B8", "row": "B", "number": 8, "type": "standard" },
+      { "id": "B9", "row": "B", "number": 9, "type": "standard" },
+      { "id": "B10", "row": "B", "number": 10, "type": "standard" }
+    ],
+    [
+      { "id": "C1", "row": "C", "number": 1, "type": "standard" },
+      { "id": "C2", "row": "C", "number": 2, "type": "standard" },
+      { "id": "C3", "row": "C", "number": 3, "type": "standard" },
+      { "id": "C4", "row": "C", "number": 4, "type": "standard" },
+      { "id": "C5", "row": "C", "number": 5, "type": "standard" },
+      { "id": "C6", "row": "C", "number": 6, "type": "standard" },
+      { "id": "C7", "row": "C", "number": 7, "type": "standard" },
+      { "id": "C8", "row": "C", "number": 8, "type": "standard" },
+      { "id": "C9", "row": "C", "number": 9, "type": "standard" },
+      { "id": "C10", "row": "C", "number": 10, "type": "standard" }
+    ],
+    [
+      { "id": "D1", "row": "D", "number": 1, "type": "standard" },
+      { "id": "D2", "row": "D", "number": 2, "type": "standard" },
+      { "id": "D3", "row": "D", "number": 3, "type": "standard" },
+      { "id": "D4", "row": "D", "number": 4, "type": "standard" },
+      { "id": "D5", "row": "D", "number": 5, "type": "standard" },
+      { "id": "D6", "row": "D", "number": 6, "type": "standard" },
+      { "id": "D7", "row": "D", "number": 7, "type": "standard" },
+      { "id": "D8", "row": "D", "number": 8, "type": "standard" },
+      { "id": "D9", "row": "D", "number": 9, "type": "standard" },
+      { "id": "D10", "row": "D", "number": 10, "type": "standard" }
+    ],
+    [
+      { "id": "E1", "row": "E", "number": 1, "type": "vip" },
+      { "id": "E2", "row": "E", "number": 2, "type": "vip" },
+      { "id": "E3", "row": "E", "number": 3, "type": "vip" },
+      { "id": "E4", "row": "E", "number": 4, "type": "vip" },
+      { "id": "E5", "row": "E", "number": 5, "type": "vip" },
+      { "id": "E6", "row": "E", "number": 6, "type": "vip" },
+      { "id": "E7", "row": "E", "number": 7, "type": "vip" },
+      { "id": "E8", "row": "E", "number": 8, "type": "vip" },
+      { "id": "E9", "row": "E", "number": 9, "type": "vip" },
+      { "id": "E10", "row": "E", "number": 10, "type": "vip" }
+    ],
+    [
+      { "id": "F1", "row": "F", "number": 1, "type": "couple" },
+      { "id": "F2", "row": "F", "number": 2, "type": "couple" },
+      { "id": "F3", "row": "F", "number": 3, "type": "couple" },
+      { "id": "F4", "row": "F", "number": 4, "type": "couple" },
+      { "id": "F5", "row": "F", "number": 5, "type": "couple" }
+    ]
+  ],
+  "pricing": {
+    "standard": 1.0,
+    "vip": 1.5,
+    "couple": 2.0
+  },
+  "metadata": {
+    "screen": "front",
+    "aisles": [3, 7],
+    "wheelchairAccessible": ["A1", "A10"]
+  }
 }`}
             </pre>
-            <p className="mt-2 text-xs text-gray-500">
-              • <strong>type</strong>: standard, vip, couple, empty<br />
-              • <strong>empty</strong>: ô trống không có ghế
-            </p>
+            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded text-xs text-gray-700">
+              <p className="font-semibold mb-2">📋 Hướng dẫn:</p>
+              <ul className="space-y-1">
+                <li><strong>rows:</strong> Mảng các hàng ghế (A, B, C, ...)</li>
+                <li><strong>layout:</strong> Mảng 2D, mỗi phần tử là một hàng ghế với danh sách ghế</li>
+                <li><strong>id:</strong> Định danh ghế duy nhất (ROW + NUMBER, VD: A1, B5, F3)</li>
+                <li><strong>type:</strong> standard (chuẩn), vip (cao cấp), couple (couple)</li>
+                <li><strong>pricing:</strong> Hệ số giá theo loại ghế (bội số của giá suất chiếu)</li>
+                <li><strong>metadata:</strong> Thông tin bổ sung (vị trí màn hình, lối đi, ghế dành cho người khuyết tật)</li>
+              </ul>
+              <p className="mt-2 pt-2 border-t border-blue-200">
+                <strong>💰 Ví dụ tính giá:</strong> Nếu suất chiếu giá 80.000đ:
+                <br/>• Ghế standard: 80.000 × 1.0 = <strong>80.000đ</strong>
+                <br/>• Ghế vip: 80.000 × 1.5 = <strong>120.000đ</strong>
+                <br/>• Ghế couple: 80.000 × 2.0 = <strong>160.000đ</strong>
+              </p>
+            </div>
           </details>
         </div>
 

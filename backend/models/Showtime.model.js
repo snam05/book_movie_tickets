@@ -45,14 +45,9 @@ const Showtime = sequelize.define('Showtime', {
         allowNull: false,
         field: 'price'
     },
-    available_seats: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        field: 'available_seats'
-    },
     status: {
-        type: DataTypes.ENUM('scheduled', 'showing', 'finished', 'cancelled'),
-        defaultValue: 'scheduled',
+        type: DataTypes.ENUM('normal', 'canceled'),
+        defaultValue: 'normal',
         field: 'status'
     },
     created_at: {

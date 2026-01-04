@@ -17,6 +17,7 @@ export const getUserBookings = async (userId) => {
                 {
                     model: Showtime,
                     as: 'showtime',
+                    attributes: ['id', 'movie_id', 'theater_id', 'showtime_date', 'showtime_time', 'price', 'status'],
                     include: [
                         {
                             model: Movie,
@@ -60,6 +61,7 @@ export const getBookingById = async (bookingId, userId) => {
                 {
                     model: Showtime,
                     as: 'showtime',
+                    attributes: ['id', 'movie_id', 'theater_id', 'showtime_date', 'showtime_time', 'price', 'status'],
                     include: [
                         {
                             model: Movie,
@@ -94,17 +96,14 @@ export const getBookingById = async (bookingId, userId) => {
 export const createBooking = async (userId, showtimeId, seats, paymentMethod = 'cash') => {
     try {
         // 1. Kiểm tra showtime có tồn tại không
-        const showtime = await Showtime.findByPk(showtimeId);
+        const showtime = await Showtime.findByPk(showtimeId, {
+            attributes: ['id', 'movie_id', 'theater_id', 'showtime_date', 'showtime_time', 'price', 'status']
+        });
         if (!showtime) {
             throw new Error('Showtime not found');
         }
 
-        // 2. Kiểm tra số ghế còn đủ không
-        if (showtime.available_seats < seats.length) {
-            throw new Error('Not enough available seats');
-        }
-
-        // 3. Tính tổng tiền
+        // 2. Tính tổng tiền
         const totalPrice = seats.reduce((sum, seat) => sum + (seat.price || 0), 0);
 
         // 4. Tạo booking code (format: BK + timestamp + random)
@@ -134,11 +133,7 @@ export const createBooking = async (userId, showtimeId, seats, paymentMethod = '
 
         await BookedSeat.bulkCreate(bookedSeatsData);
 
-        // 7. Cập nhật số ghế còn lại của showtime
-        showtime.available_seats -= seats.length;
-        await showtime.save();
-
-        // 8. Lấy lại booking với đầy đủ thông tin
+        // 7. Lấy lại booking với đầy đủ thông tin
         const fullBooking = await getBookingById(booking.id, userId);
 
         return fullBooking;

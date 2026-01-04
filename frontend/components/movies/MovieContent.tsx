@@ -6,6 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Clock, Star, Calendar, Film } from 'lucide-react';
 import { ShowtimeButton } from './ShowtimeButton';
+import { ShowtimeCard } from './ShowtimeCard';
 
 // Client Component - nhận movie data từ Server Component
 export function MovieContent({ movie }: { movie: MovieFromAPI }) {
@@ -155,18 +156,13 @@ export function MovieContent({ movie }: { movie: MovieFromAPI }) {
                             {theaterShowtimes
                               .sort((a, b) => a.showtime_time.localeCompare(b.showtime_time))
                               .map((showtime) => (
-                              <Button
+                              <ShowtimeCard 
                                 key={showtime.id}
-                                variant="outline"
-                                className="flex flex-col items-center gap-1 h-auto py-3 px-4 hover:bg-red-50 hover:border-red-500"
-                                asChild
-                              >
-                                <a href={`/booking/${showtime.id}`}>
-                                  <span className="font-bold text-lg">{showtime.showtime_time.slice(0, 5)}</span>
-                                  <span className="text-xs text-gray-500">{parseInt(showtime.price).toLocaleString('vi-VN')}đ</span>
-                                  <span className="text-xs text-green-600">{showtime.available_seats} ghế</span>
-                                </a>
-                              </Button>
+                                showtimeId={showtime.id}
+                                time={showtime.showtime_time}
+                                price={showtime.price}
+                                availableSeats={showtime.available_seats}
+                              />
                             ))}
                           </div>
                         </div>

@@ -15,7 +15,7 @@ async function testShowtimes() {
                 {
                     model: Showtime,
                     as: 'showtimes',
-                    attributes: ['id', 'showtime_date', 'showtime_time', 'price', 'available_seats', 'status'],
+                    attributes: ['id', 'showtime_date', 'showtime_time', 'price', 'status'],
                     include: [
                         {
                             model: Theater,
@@ -24,7 +24,7 @@ async function testShowtimes() {
                         }
                     ],
                     where: {
-                        status: { [Op.in]: ['scheduled', 'showing'] }
+                        status: 'normal'
                     },
                     required: false
                 }
@@ -46,7 +46,6 @@ async function testShowtimes() {
                 console.log(`\n   ${index + 1}. ${showtime.showtime_date} - ${showtime.showtime_time}`);
                 console.log(`      Rạp: ${showtime.theater.name} (${showtime.theater.theater_type})`);
                 console.log(`      Giá: ${showtime.price}đ`);
-                console.log(`      Ghế trống: ${showtime.available_seats}`);
                 console.log(`      Trạng thái: ${showtime.status}`);
             });
         } else {

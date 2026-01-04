@@ -1,7 +1,7 @@
 // @ts-nocheck
 // services/movie.service.js
 
-import { Movie, Genre, MovieGenre, Showtime, Theater } from '../models/index.js';
+import { Movie, Genre, MovieGenre, Showtime, Theater, Booking, BookedSeat } from '../models/index.js';
 import { Op } from 'sequelize';
 import { uploadImage, deleteImage, extractPublicId } from './cloudinary.service.js';
 
@@ -51,6 +51,38 @@ export const getAllMovies = async (filters = {}) => {
 };
 
 /**
+ * Tính số ghế trống cho một showtime
+ * @param {number} showtimeId - ID lịch chiếu
+ * @param {number} totalSeats - Tổng số ghế của rạp
+ * @returns {Promise<number>} Số ghế trống
+ */
+const calculateAvailableSeats = async (showtimeId, totalSeats) => {
+    try {
+        const bookedCount = await BookedSeat.count({
+            include: [{
+                model: Booking,
+                as: 'booking',
+                where: {
+                    showtime_id: showtimeId,
+                    booking_status: {
+                        [Op.in]: ['pending', 'confirmed']
+                    }
+                },
+                attributes: [],
+                required: true
+            }],
+            distinct: true
+        });
+
+        const availableSeats = Math.max(0, totalSeats - bookedCount);
+        return availableSeats;
+    } catch (error) {
+        console.error('Error calculating available seats:', error);
+        return totalSeats;
+    }
+};
+
+/**
  * Lấy chi tiết một phim theo ID
  * @param {number} movieId - ID của phim
  * @returns {Promise<Object>} Chi tiết phim
@@ -67,19 +99,19 @@ export const getMovieById = async (movieId) => {
             {
                 model: Showtime,
                 as: 'showtimes',
-                attributes: ['id', 'showtime_date', 'showtime_time', 'price', 'available_seats', 'status'],
+                attributes: ['id', 'showtime_date', 'showtime_time', 'price', 'status'],
                 include: [
                     {
                         model: Theater,
                         as: 'theater',
-                        attributes: ['id', 'name', 'theater_type'],
+                        attributes: ['id', 'name', 'theater_type', 'total_seats'],
                         where: {
                             status: 'active' // Chỉ lấy rạp đang hoạt động
                         }
                     }
                 ],
                 where: {
-                    status: { [Op.in]: ['scheduled', 'showing'] }
+                    status: 'normal'
                 },
                 required: false
             }
@@ -88,6 +120,27 @@ export const getMovieById = async (movieId) => {
     
     if (!movie) {
         throw new Error('Không tìm thấy phim');
+    }
+    
+    // Calculate available seats for each showtime
+    if (movie.showtimes && movie.showtimes.length > 0) {
+        const showtimesWithSeats = await Promise.all(
+            movie.showtimes.map(async (showtime) => {
+                const availableSeats = await calculateAvailableSeats(
+                    showtime.id,
+                    showtime.theater.total_seats
+                );
+                return {
+                    ...showtime.toJSON(),
+                    available_seats: availableSeats
+                };
+            })
+        );
+        
+        // Replace showtimes with calculated data
+        const movieJson = movie.toJSON();
+        movieJson.showtimes = showtimesWithSeats;
+        return movieJson;
     }
     
     return movie;

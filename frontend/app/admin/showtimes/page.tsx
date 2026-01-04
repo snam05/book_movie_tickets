@@ -21,26 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2, Calendar } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
-
-const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/api/v1';
-
-interface Showtime {
-  id: number;
-  showtime_date: string;
-  showtime_time: string;
-  price: string;
-  available_seats: number;
-  status: string;
-  movie?: {
-    id: number;
-    title: string;
-  };
-  theater?: {
-    id: number;
-    name: string;
-  };
-}
+import { getAllShowtimes, deleteShowtime, Showtime } from '@/lib/api/showtimes';
 
 export default function AdminShowtimesPage() {
   const router = useRouter();
@@ -56,10 +37,8 @@ export default function AdminShowtimesPage() {
   const loadShowtimes = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_URL}/showtimes`, {
-        withCredentials: true
-      });
-      setShowtimes(response.data.data);
+      const data = await getAllShowtimes();
+      setShowtimes(data);
     } catch (error) {
       console.error('Error loading showtimes:', error);
       alert('Lỗi khi tải danh sách lịch chiếu');
@@ -72,9 +51,7 @@ export default function AdminShowtimesPage() {
     if (!showtimeToDelete) return;
 
     try {
-      await axios.delete(`${API_URL}/showtimes/${showtimeToDelete.id}`, {
-        withCredentials: true
-      });
+      await deleteShowtime(showtimeToDelete.id);
       alert('Đã xóa lịch chiếu thành công');
       setDeleteDialogOpen(false);
       setShowtimeToDelete(null);
@@ -87,9 +64,10 @@ export default function AdminShowtimesPage() {
 
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, { label: string; className: string }> = {
-      'active': { label: 'Hoạt động', className: 'bg-green-500 hover:bg-green-600' },
-      'cancelled': { label: 'Đã hủy', className: 'bg-red-500 hover:bg-red-600' },
-      'ended': { label: 'Đã kết thúc', className: 'bg-gray-500 hover:bg-gray-600' }
+      'scheduled': { label: 'Lên Lịch', className: 'bg-blue-500 hover:bg-blue-600' },
+      'showing': { label: 'Đang Chiếu', className: 'bg-green-500 hover:bg-green-600' },
+      'completed': { label: 'Đã Kết Thúc', className: 'bg-gray-500 hover:bg-gray-600' },
+      'canceled': { label: 'Đã Hủy', className: 'bg-red-500 hover:bg-red-600' }
     };
     const config = statusMap[status] || { label: status, className: 'bg-gray-500' };
     return <Badge className={config.className}>{config.label}</Badge>;
@@ -169,7 +147,7 @@ export default function AdminShowtimesPage() {
                   <TableCell>{showtime.showtime_time}</TableCell>
                   <TableCell>{formatPrice(showtime.price)}</TableCell>
                   <TableCell>{showtime.available_seats}</TableCell>
-                  <TableCell>{getStatusBadge(showtime.status)}</TableCell>
+                  <TableCell>{getStatusBadge(showtime.display_status || showtime.status)}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js",
+    "dev": "cross-env NODE_OPTIONS=--no-deprecation nodemon index.js",
     "create-admin": "node scripts/create-admin.js"
   },
   "dependencies": {
@@ -23,6 +23,7 @@
     "sequelize": "^6.37.7"
   },
   "devDependencies": {
+    "cross-env": "^10.1.0",
     "nodemon": "^3.1.11"
   }
 }

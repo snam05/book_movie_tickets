@@ -60,19 +60,18 @@ class PriceController {
   // Tạo giá vé mới (Admin)
   async createPrice(req, res) {
     try {
-      const { seatType, seatTypeVietnamese, price, description } = req.body;
+      const { seatType, price, description } = req.body;
 
       // Validation
-      if (!seatType || !seatTypeVietnamese || price === undefined) {
+      if (!seatType || price === undefined) {
         return res.status(400).json({
           success: false,
-          message: 'Please provide all required fields',
+          message: 'Please provide all required fields (seatType, price)',
         });
       }
 
       const newPrice = await priceService.createPrice({
         seatType,
-        seatTypeVietnamese,
         price,
         description,
       });
@@ -97,11 +96,10 @@ class PriceController {
   async updatePrice(req, res) {
     try {
       const { id } = req.params;
-      const { seatType, seatTypeVietnamese, price, description, isActive } = req.body;
+      const { seatType, price, description, isActive } = req.body;
 
       const updatedPrice = await priceService.updatePrice(id, {
         seatType,
-        seatTypeVietnamese,
         price,
         description,
         isActive,

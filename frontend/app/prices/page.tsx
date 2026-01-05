@@ -48,7 +48,8 @@ export default function PricesPage() {
       try {
         setLoading(true);
         const response = await axiosInstance.get('/prices');
-        setPrices(response.data.data);
+        const items = Array.isArray(response.data?.data) ? response.data.data : [];
+        setPrices(items);
         setError(null);
       } catch (err: any) {
         setError(err.response?.data?.message || 'Lỗi khi tải giá vé');

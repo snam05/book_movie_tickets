@@ -102,31 +102,29 @@ export default function CreateShowtimePage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Đang tải...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Đang tải...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-6">
+      <div>
         <Link href="/admin/showtimes">
-          <Button variant="outline" size="icon">
-            <ArrowLeft className="h-4 w-4" />
+          <Button variant="ghost" className="mb-4">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Quay lại
           </Button>
         </Link>
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Thêm Lịch Chiếu Mới</h1>
-          <p className="text-gray-600 mt-1">Tạo một lịch chiếu mới cho hệ thống</p>
-        </div>
+        <h1 className="text-3xl font-bold text-gray-900">Thêm Lịch Chiếu Mới</h1>
+        <p className="text-gray-600 mt-1">Tạo một lịch chiếu mới cho hệ thống</p>
       </div>
 
       {/* Form */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-6">
           {/* Movie Selection */}
           <div className="space-y-2">
             <Label htmlFor="movie_id">Phim <span className="text-red-600">*</span></Label>
@@ -243,7 +241,6 @@ export default function CreateShowtimePage() {
             </Button>
           </div>
         </form>
-      </div>
 
       {/* Error Dialog */}
       <Dialog open={errorDialog.open} onOpenChange={(open) => setErrorDialog({ ...errorDialog, open })}>

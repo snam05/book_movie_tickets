@@ -54,8 +54,9 @@ export default function NewsPage() {
         : `/news/category/${selectedCategory}?page=${currentPage}&limit=${pageSize}`;
       
       const response = await axiosInstance.get(url);
-      setNews(response.data.data);
-      setTotalPages(response.data.pagination?.totalPages || 1);
+      const items = Array.isArray(response.data?.data) ? response.data.data : [];
+      setNews(items);
+      setTotalPages(response.data?.pagination?.totalPages || 1);
       setError(null);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Lỗi khi tải tin tức');

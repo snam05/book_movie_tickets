@@ -305,10 +305,11 @@ export default function CreateMoviePage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="6">6+</SelectItem>
-                <SelectItem value="13">13+</SelectItem>
-                <SelectItem value="16">16+</SelectItem>
-                <SelectItem value="18">18+</SelectItem>
+                <SelectItem value="P">P</SelectItem>
+                <SelectItem value="K">K</SelectItem>
+                <SelectItem value="T13">T13</SelectItem>
+                <SelectItem value="T16">T16</SelectItem>
+                <SelectItem value="T18">T18</SelectItem>
               </SelectContent>
             </Select>
           </div>

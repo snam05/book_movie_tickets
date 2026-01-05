@@ -131,7 +131,37 @@ export default function ActivityLogsPage() {
     setCurrentPage(1);
   };
 
+  const getPaginationNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    const endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+    if (startPage > 1) {
+      pages.push(1);
+      if (startPage > 2) pages.push('...');
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) pages.push('...');
+      pages.push(totalPages);
+    }
+
+    return pages;
+  };
+
   const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleGoToPage = (page: number) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -393,24 +423,23 @@ export default function ActivityLogsPage() {
             Trước
           </Button>
 
-          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-            const page = currentPage - 2 + i;
-            if (page >= 1 && page <= totalPages) {
-              return (
+          {getPaginationNumbers().map((page, index) => (
+            <React.Fragment key={index}>
+              {page === '...' ? (
+                <span className="px-2 text-gray-500">...</span>
+              ) : (
                 <Button
-                  key={page}
                   variant={currentPage === page ? 'default' : 'outline'}
-                  onClick={() => handlePageChange(page)}
+                  onClick={() => handlePageChange(page as number)}
                   disabled={loading}
                   size="sm"
                   className={currentPage === page ? 'bg-red-600 hover:bg-red-700' : ''}
                 >
                   {page}
                 </Button>
-              );
-            }
-            return null;
-          })}
+              )}
+            </React.Fragment>
+          ))}
 
           <Button
             variant="outline"
@@ -429,8 +458,25 @@ export default function ActivityLogsPage() {
             Cuối cùng
           </Button>
 
+          <div className="ml-4 flex items-center gap-2">
+            <span className="text-sm text-gray-600">Đi đến:</span>
+            <Input
+              type="number"
+              min="1"
+              max={totalPages}
+              defaultValue={currentPage}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const page = parseInt((e.target as HTMLInputElement).value);
+                  handleGoToPage(page);
+                }
+              }}
+              className="w-16 h-10"
+            />
+          </div>
+
           <div className="ml-4 text-sm text-gray-600">
-            Trang {currentPage} của {totalPages}
+            Trang {currentPage} của {totalPages} ({total} tổng cộng)
           </div>
         </div>
       )}

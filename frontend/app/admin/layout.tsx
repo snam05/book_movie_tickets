@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Building2, Film, Calendar, Users, Ticket, BarChart3, Activity, Tag } from 'lucide-react';
+import { Building2, Film, Calendar, Users, Ticket, BarChart3, Activity, Tag, DollarSign, Newspaper } from 'lucide-react';
 
 export default function AdminLayout({
   children,
@@ -118,6 +118,22 @@ export default function AdminLayout({
           >
             <Ticket className="h-5 w-5" />
             <span className="font-medium">Quản lý đặt vé</span>
+          </Link>
+
+          <Link
+            href="/admin/prices"
+            className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-red-50 text-gray-700 hover:text-red-600 transition-colors"
+          >
+            <DollarSign className="h-5 w-5" />
+            <span className="font-medium">Giá vé</span>
+          </Link>
+
+          <Link
+            href="/admin/news"
+            className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-red-50 text-gray-700 hover:text-red-600 transition-colors"
+          >
+            <Newspaper className="h-5 w-5" />
+            <span className="font-medium">Tin tức & thông báo</span>
           </Link>
           
           <Link

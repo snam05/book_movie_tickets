@@ -229,10 +229,6 @@ CREATE INDEX idx_showtime_search ON showtimes(movie_id, showtime_date, theater_i
 -- Index cho tìm kiếm booking theo trạng thái và ngày
 CREATE INDEX idx_booking_date_status ON bookings(booking_date, booking_status);
 
-
-
-
-
 -- Create activities table for logging system activities
 CREATE TABLE IF NOT EXISTS `activities` (
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -267,6 +263,50 @@ DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_unicode_ci
 COMMENT = 'Bảng lưu nhật ký hoạt động của hệ thống';
 
+
+-- =============================================
+-- 10. BẢNG GIÁ VÉ (PRICES)
+-- =============================================
+-- Lưu trữ thông tin giá vé theo loại ghế
+
+CREATE TABLE IF NOT EXISTS prices (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    seat_type ENUM('standard', 'premium', 'vip') NOT NULL UNIQUE COMMENT 'Loại ghế',
+    price DECIMAL(10, 2) NOT NULL COMMENT 'Giá vé (VNĐ)',
+    description TEXT COMMENT 'Mô tả chi tiết về loại ghế',
+    is_active BOOLEAN DEFAULT TRUE COMMENT 'Trạng thái hoạt động',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_seat_type (seat_type),
+    INDEX idx_is_active (is_active)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT = 'Bảng quản lý giá vé theo loại ghế';
+
+-- =============================================
+-- 11. BẢNG TIN TỨC (NEWS)
+-- =============================================
+-- Lưu trữ tin tức và bài viết về phim
+
+CREATE TABLE IF NOT EXISTS news (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL COMMENT 'Tiêu đề bài viết',
+    slug VARCHAR(300) NOT NULL UNIQUE COMMENT 'URL-friendly slug',
+    content LONGTEXT NOT NULL COMMENT 'Nội dung bài viết',
+    summary TEXT COMMENT 'Tóm tắt ngắn gọn',
+    image VARCHAR(500) COMMENT 'URL hình ảnh đại diện',
+    category ENUM('movie_news', 'events', 'promotions', 'reviews', 'interviews', 'behind_the_scenes') DEFAULT 'movie_news' COMMENT 'Danh mục tin tức',
+    is_published BOOLEAN DEFAULT FALSE COMMENT 'Trạng thái xuất bản',
+    published_at DATETIME NULL COMMENT 'Thời gian xuất bản',
+    views INT DEFAULT 0 COMMENT 'Số lượt xem',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_slug (slug),
+    INDEX idx_category (category),
+    INDEX idx_is_published (is_published),
+    INDEX idx_published_at (published_at),
+    INDEX idx_views (views)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT = 'Bảng quản lý tin tức và bài viết';
 
 -- =============================================
 -- HOÀN THÀNH

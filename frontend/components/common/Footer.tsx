@@ -11,7 +11,6 @@ const footerSections = [
     title: "Về chúng tôi",
     links: [
       { href: "/about", label: "Giới thiệu" },
-      { href: "/careers", label: "Tuyển dụng" },
       { href: "/terms", label: "Điều khoản & Quy định" },
     ],
   },
@@ -62,9 +61,9 @@ export function Footer() {
               Liên hệ
             </h4>
             <p className="text-gray-300 mb-4">
-              Địa chỉ: 123 Đường Công Nghệ, TP. HCM, Việt Nam
+              Địa chỉ: Hà Nội, Việt Nam
               <br />
-              Hotline: 1900 1000
+              Hotline: 1900 0000
             </p>
             <div className="flex space-x-3">
               <Button variant="ghost" size="icon" className="hover:bg-gray-700 text-red-400 hover:text-red-500">

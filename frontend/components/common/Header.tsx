@@ -21,7 +21,7 @@ const USER_CACHE_KEY = 'cached_user';
 
 const NAV_LINKS = [
     { href: "/", label: "Lịch Chiếu" },
-    { href: "/theaters", label: "Rạp/Giá Vé" },
+    { href: "/prices", label: "Giá Vé" },
     { href: "/news", label: "Tin Tức & Ưu Đãi" },
 ];
 

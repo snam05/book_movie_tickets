@@ -28,6 +28,12 @@ const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASS, {
     dialect: DB_DIALECT, 
     port: DB_PORT || 3306,
     logging: false,
+    dialectOptions: {
+        ssl: {
+            require: true,
+            rejectUnauthorized: false
+        }
+    }
 });
 
 const connectDB = async () => {

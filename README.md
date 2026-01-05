@@ -561,10 +561,6 @@ Xem chi tiết schema: [database/scripts/create_table.sql](database/scripts/crea
 4. Push to branch: `git push origin feature/AmazingFeature`
 5. Open Pull Request
 
-## 📄 License
-
-MIT License - xem [LICENSE](LICENSE) để chi tiết
-
 ## 👤 Author
 
 - **Tên**: Nam Pham

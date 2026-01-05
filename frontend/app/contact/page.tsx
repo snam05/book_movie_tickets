@@ -55,8 +55,8 @@ export default function ContactPage() {
               <Mail className="w-8 h-8 text-white" />
             </div>
             <h3 className="text-2xl font-bold text-gray-900 mb-3">Email</h3>
-            <a href="mailto:support@betacinema.vn" className="text-lg font-semibold text-red-600 hover:text-red-700 block mb-2 break-words">
-              support@betacinema.vn
+            <a href="mailto:support@alphacinema.vn" className="text-lg font-semibold text-red-600 hover:text-red-700 block mb-2 break-words">
+              support@alphacinema.vn
             </a>
             <p className="text-gray-600">
               Phản hồi trong 24h
@@ -93,7 +93,7 @@ export default function ContactPage() {
               Thứ 2 - Chủ nhật
             </p>
             <p className="text-gray-600">
-              8:00 - 22:00
+              08:00 - 02:00 (ngày hôm sau)
             </p>
             <p className="text-sm text-gray-500 mt-2">
               Sẵn sàng phục vụ

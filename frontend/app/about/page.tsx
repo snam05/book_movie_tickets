@@ -32,11 +32,11 @@ export default function AboutPage() {
           <div className="bg-white rounded-2xl shadow-xl p-10 hover:shadow-2xl transition-all duration-300 border border-red-100">
             <div className="flex items-center gap-3 mb-6">
               <div className="h-1 w-12 bg-gradient-to-r from-red-600 to-red-400 rounded-full"></div>
-              <h2 className="text-4xl font-bold text-gray-900">Giới Thiệu BetaCinema</h2>
+              <h2 className="text-4xl font-bold text-gray-900">Giới Thiệu AlphaCinema</h2>
             </div>
             <div className="prose max-w-none text-gray-700 space-y-5">
               <p className="text-xl leading-relaxed">
-                🎬 <strong className="text-red-600">BetaCinema</strong> là chuỗi rạp chiếu phim hiện đại hàng đầu tại Việt Nam, 
+                🎬 <strong className="text-red-600">AlphaCinema</strong> là chuỗi rạp chiếu phim hiện đại hàng đầu tại Việt Nam, 
                 cam kết mang đến cho khán giả những trải nghiệm điện ảnh đẳng cấp quốc tế với công nghệ tiên tiến nhất.
               </p>
               <p className="text-lg leading-relaxed">
@@ -149,7 +149,7 @@ export default function AboutPage() {
                   Liên Hệ Ngay
                 </a>
                 <a
-                  href="/movies"
+                  href="/"
                   className="bg-red-800 text-white px-10 py-4 rounded-xl font-bold hover:bg-red-900 hover:shadow-xl transition-all duration-300 transform hover:scale-105 border-2 border-white/20"
                 >
                   Xem Phim Đang Chiếu

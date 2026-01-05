@@ -36,11 +36,11 @@ export default function TermsPage() {
             </h2>
             <div className="text-gray-700 space-y-3 pl-8">
               <p>
-                Khi truy cập và sử dụng trang web BetaCinema, bạn đồng ý tuân thủ các điều khoản 
+                Khi truy cập và sử dụng trang web AlphaCinema, bạn đồng ý tuân thủ các điều khoản 
                 và điều kiện sử dụng được quy định dưới đây.
               </p>
               <p>
-                BetaCinema có quyền thay đổi, chỉnh sửa, thêm hoặc lược bỏ bất kỳ phần nào trong 
+                AlphaCinema có quyền thay đổi, chỉnh sửa, thêm hoặc lược bỏ bất kỳ phần nào trong 
                 Điều khoản sử dụng này, vào bất cứ lúc nào. Các thay đổi có hiệu lực ngay khi được 
                 đăng tải trên trang web.
               </p>
@@ -157,8 +157,8 @@ export default function TermsPage() {
             </h2>
             <div className="text-gray-700 space-y-3 pl-8">
               <p>
-                Tất cả nội dung trên trang web BetaCinema bao gồm văn bản, hình ảnh, logo, 
-                đồ họa, video và các tài liệu khác đều thuộc quyền sở hữu của BetaCinema hoặc 
+                Tất cả nội dung trên trang web AlphaCinema bao gồm văn bản, hình ảnh, logo, 
+                đồ họa, video và các tài liệu khác đều thuộc quyền sở hữu của AlphaCinema hoặc 
                 các đối tác có bản quyền.
               </p>
               <p>
@@ -176,7 +176,7 @@ export default function TermsPage() {
             </h2>
             <div className="text-gray-700 space-y-3 pl-8">
               <p>
-                BetaCinema không chịu trách nhiệm về bất kỳ thithiệt hại trực tiếp, gián tiếp, 
+                AlphaCinema không chịu trách nhiệm về bất kỳ thiệt hại trực tiếp, gián tiếp, 
                 ngẫu nhiên, đặc biệt hoặc hậu quả nào phát sinh từ việc sử dụng hoặc không thể 
                 sử dụng dịch vụ của chúng tôi.
               </p>
@@ -195,7 +195,7 @@ export default function TermsPage() {
                 liên hệ với chúng tôi:
               </p>
               <ul className="list-none space-y-2 mt-4">
-                <li><strong>Email:</strong> support@betacinema.vn</li>
+                <li><strong>Email:</strong> support@alphacinema.vn</li>
                 <li><strong>Hotline:</strong> 1900 0000</li>
                 <li><strong>Địa chỉ:</strong> Hà Nội, Việt Nam</li>
               </ul>

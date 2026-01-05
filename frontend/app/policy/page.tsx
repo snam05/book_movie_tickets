@@ -34,7 +34,7 @@ export default function PolicyPage() {
             <div className="text-blue-900">
               <p className="font-bold text-xl mb-3">Cam kết của chúng tôi</p>
               <p className="text-lg leading-relaxed">
-                BetaCinema cam kết bảo vệ quyền riêng tư và thông tin cá nhân của khách hàng. 
+                AlphaCinema cam kết bảo vệ quyền riêng tư và thông tin cá nhân của khách hàng. 
                 Chính sách này giải thích cách chúng tôi thu thập, sử dụng và bảo vệ dữ liệu của bạn.
               </p>
             </div>
@@ -207,7 +207,7 @@ export default function PolicyPage() {
               </ul>
               <p className="mt-3">
                 Để thực hiện các quyền trên, vui lòng liên hệ: 
-                <strong> support@betacinema.vn</strong>
+                <strong> support@alphacinema.vn</strong>
               </p>
             </div>
           </section>
@@ -317,9 +317,9 @@ export default function PolicyPage() {
                 của mình, vui lòng liên hệ:
               </p>
               <div className="bg-gray-50 p-4 rounded-lg mt-4">
-                <p className="font-semibold mb-2">BetaCinema - Bộ phận Bảo mật Dữ liệu</p>
+                <p className="font-semibold mb-2">AlphaCinema - Bộ phận Bảo mật Dữ liệu</p>
                 <ul className="space-y-1 text-sm">
-                  <li><strong>Email:</strong> privacy@betacinema.vn</li>
+                  <li><strong>Email:</strong> privacy@alphacinema.vn</li>
                   <li><strong>Hotline:</strong> 1900 0000</li>
                   <li><strong>Địa chỉ:</strong> Hà Nội, Việt Nam</li>
                 </ul>

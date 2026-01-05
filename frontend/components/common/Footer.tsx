@@ -39,7 +39,7 @@ export function Footer() {
               <div className="bg-gradient-to-br from-red-500 to-red-600 p-2 rounded-lg">
                 <Film className="h-6 w-6 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-white">BetaCinema</h3>
+              <h3 className="text-2xl font-bold text-white">AlphaCinema</h3>
             </div>
             <p className="text-gray-400 text-sm leading-relaxed mb-6">
               Trải nghiệm điện ảnh đẳng cấp với công nghệ hiện đại, chất lượng hình ảnh và âm thanh tuyệt vời.
@@ -95,7 +95,7 @@ export function Footer() {
               </div>
               <div className="flex items-start gap-3 text-gray-400 hover:text-red-500 transition-colors group">
                 <Mail className="h-5 w-5 flex-shrink-0 mt-0.5 text-red-500" />
-                <a href="mailto:support@betacinema.vn" className="text-sm break-all">support@betacinema.vn</a>
+                <a href="mailto:support@alphacinema.vn" className="text-sm break-all">support@alphacinema.vn</a>
               </div>
             </div>
             
@@ -110,7 +110,7 @@ export function Footer() {
 
         {/* Phần Bản quyền */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-400">
-          <p>© {currentYear} <span className="text-red-500 font-semibold">BetaCinema</span>. All Rights Reserved.</p>
+          <p>© {currentYear} <span className="text-red-500 font-semibold">AlphaCinema</span>. All Rights Reserved.</p>
           <div className="flex gap-6">
             <Link href="/terms" className="hover:text-red-500 transition-colors">Điều khoản sử dụng</Link>
             <Link href="/policy" className="hover:text-red-500 transition-colors">Chính sách bảo mật</Link>

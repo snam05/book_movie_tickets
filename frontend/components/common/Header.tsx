@@ -156,7 +156,7 @@ export function Header() {
         <header className="bg-white shadow-sm sticky top-0 z-50 border-b">
             <div className="max-w-7xl mx-auto px-6 lg:px-8 h-20 flex items-center justify-between">
                 <Link href="/" className="text-2xl font-black text-red-600 tracking-tighter flex-shrink-0">
-                    TICKET<span className="text-gray-900">APP</span>
+                    ALPHA<span className="text-gray-900">CINEMA</span>
                 </Link>
 
                 <div className="hidden md:flex items-center bg-gray-100 rounded-full px-5 py-2.5 w-full max-w-md mx-6 lg:mx-10">

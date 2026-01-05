@@ -10,16 +10,18 @@ export default function AboutPage() {
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNnptLTEyIDBjMy4zMTQgMCA2IDIuNjg2IDYgNnMtMi42ODYgNi02IDYtNi0yLjY4Ni02LTYgMi42ODYtNiA2LTZ6bTAgMTJjMy4zMTQgMCA2IDIuNjg2IDYgNnMtMi42ODYgNi02IDYtNi0yLjY4Ni02LTYgMi42ODYtNiA2LTZ6bTEyIDBjMy4zMTQgMCA2IDIuNjg2IDYgNnMtMi42ODYgNi02IDYtNi0yLjY4Ni02LTYgMi42ODYtNiA2LTZ6IiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iLjUiIG9wYWNpdHk9Ii4xIi8+PC9nPjwvc3ZnPg==')] opacity-20"></div>
         <div className="relative max-w-7xl mx-auto px-4">
-          <div className="flex items-center gap-3 mb-6 justify-center md:justify-start">
+          <div className="flex items-center gap-3 mb-6 justify-center">
             <Film className="w-14 h-14 animate-pulse" />
             <Sparkles className="w-10 h-10" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold mb-4 text-center md:text-left">
-            Về Chúng Tôi
-          </h1>
-          <p className="text-2xl text-red-100 text-center md:text-left max-w-2xl">
-            Mang đến trải nghiệm điện ảnh đẳng cấp quốc tế
-          </p>
+          <div className="max-w-3xl mx-auto text-center">
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">
+              Về Chúng Tôi
+            </h1>
+            <p className="text-2xl text-red-100">
+              Mang đến trải nghiệm điện ảnh đẳng cấp quốc tế
+            </p>
+          </div>
         </div>
       </div>
 

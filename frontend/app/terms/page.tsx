@@ -10,16 +10,18 @@ export default function TermsPage() {
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNnptLTEyIDBjMy4zMTQgMCA2IDIuNjg2IDYgNnMtMi42ODYgNi02IDYtNi0yLjY4Ni02LTYgMi42ODYtNiA2LTZ6bTAgMTJjMy4zMTQgMCA2IDIuNjg2IDYgNnMtMi42ODYgNi02IDYtNi0yLjY4Ni02LTYgMi42ODYtNiA2LTZ6bTEyIDBjMy4zMTQgMCA2IDIuNjg2IDYgNnMtMi42ODYgNi02IDYtNi0yLjY4Ni02LTYgMi42ODYtNiA2LTZ6IiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iLjUiIG9wYWNpdHk9Ii4xIi8+PC9nPjwvc3ZnPg==')] opacity-20"></div>
         <div className="relative max-w-7xl mx-auto px-4">
-          <div className="flex items-center gap-4 mb-6 justify-center md:justify-start">
+          <div className="flex items-center gap-4 mb-6 justify-center">
             <FileText className="w-14 h-14" />
             <Sparkles className="w-10 h-10 animate-pulse" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold mb-4 text-center md:text-left">
-            Điều Khoản & Quy Định
-          </h1>
-          <p className="text-2xl text-red-100 text-center md:text-left max-w-2xl">
-            Vui lòng đọc kỹ các điều khoản trước khi sử dụng dịch vụ
-          </p>
+          <div className="max-w-3xl mx-auto text-center">
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">
+              Điều Khoản & Quy Định
+            </h1>
+            <p className="text-2xl text-red-100">
+              Vui lòng đọc kỹ các điều khoản trước khi sử dụng dịch vụ
+            </p>
+          </div>
         </div>
       </div>
 

@@ -362,3 +362,29 @@ export const deleteOldActivities = async (daysOld = 30) => {
         throw error;
     }
 };
+
+/**
+ * Tạo activity notification đơn giản (cho thông báo)
+ * @param {Object} data - Dữ liệu activity
+ * @returns {Promise<Activity>}
+ */
+export const createActivity = async (data) => {
+    try {
+        const { user_id, action, resource, resource_id, description, metadata } = data;
+        
+        const activity = await Activity.create({
+            user_id,
+            action,
+            resource,
+            resource_id,
+            description,
+            metadata: metadata ? JSON.stringify(metadata) : null,
+            created_at: new Date()
+        });
+
+        return activity;
+    } catch (error) {
+        console.error('Error creating activity:', error);
+        throw error;
+    }
+};

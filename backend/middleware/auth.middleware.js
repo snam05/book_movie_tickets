@@ -34,6 +34,15 @@ export const verifyToken = async (req, res, next) => {
                 });
             }
             
+            // Kiểm tra tài khoản có được kích hoạt không
+            if (!user.is_active) {
+                console.log("\x1b[31m%s\x1b[0m", `[Auth Middleware] Tài khoản bị vô hiệu hóa: User ID ${user.id}`);
+                res.clearCookie('session_token');
+                return res.status(403).json({ 
+                    message: "Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên." 
+                });
+            }
+            
             // Lưu thông tin user vào request
             req.user = {
                 id: user.id,

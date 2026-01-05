@@ -136,7 +136,12 @@ export const getUserStats = async () => {
  * Tạo user mới (Admin only)
  */
 export const createUser = async (userData) => {
-    const { email, password, full_name, phone_number, cccd_number, date_of_birth, gender, role = 'customer' } = userData;
+    const { email, password, full_name, phone_number, cccd_number, date_of_birth, gender, role = 'customer', is_active = true } = userData;
+    
+    // Validation: Kiểm tra các trường bắt buộc
+    if (!email || !password || !full_name || !date_of_birth) {
+        throw new Error('Vui lòng điền đầy đủ thông tin bắt buộc');
+    }
     
     // Kiểm tra email đã tồn tại
     const existingUser = await User.findOne({ where: { email } });
@@ -175,6 +180,7 @@ export const createUser = async (userData) => {
         gender,
         member_code,
         role,
+        is_active,
         created_at: new Date(),
         updated_at: new Date()
     });
@@ -244,11 +250,17 @@ export const updateUser = async (userId, updateData) => {
         }
     }
     
+    // Validation: Kiểm tra ngày sinh bắt buộc
+    if (updateData.date_of_birth === undefined || updateData.date_of_birth === '') {
+        throw new Error('Vui lòng điền đầy đủ thông tin bắt buộc');
+    }
+    
     // Cập nhật các trường khác
     if (updateData.full_name) user.full_name = updateData.full_name;
     if (updateData.phone_number !== undefined) user.phone_number = updateData.phone_number;
     if (updateData.date_of_birth !== undefined) user.date_of_birth = updateData.date_of_birth;
     if (updateData.gender !== undefined) user.gender = updateData.gender;
+    if (updateData.is_active !== undefined) user.is_active = updateData.is_active;
     
     user.updated_at = new Date();
     await user.save();
@@ -263,6 +275,7 @@ export const updateUser = async (userId, updateData) => {
         gender: user.gender,
         member_code: user.member_code,
         role: user.role,
+        is_active: user.is_active,
         updated_at: user.updated_at
     };
 };
@@ -282,4 +295,34 @@ export const setUserPassword = async (userId, newPassword) => {
     await user.save();
     
     return { message: 'Đã cập nhật mật khẩu thành công' };
+};
+
+/**
+ * Kích hoạt/Vô hiệu hóa tài khoản user (Admin only)
+ */
+export const toggleUserStatus = async (userId, isActive, currentUserId) => {
+    const user = await User.findByPk(userId);
+    
+    if (!user) {
+        throw new Error('Không tìm thấy người dùng');
+    }
+    
+    // Không cho phép vô hiệu hóa chính mình
+    if (userId === currentUserId && !isActive) {
+        throw new Error('Không thể vô hiệu hóa tài khoản của chính bạn');
+    }
+    
+    user.is_active = isActive;
+    user.updated_at = new Date();
+    await user.save();
+    
+    return { 
+        message: isActive ? 'Đã kích hoạt tài khoản thành công' : 'Đã vô hiệu hóa tài khoản thành công',
+        data: {
+            id: user.id,
+            email: user.email,
+            full_name: user.full_name,
+            is_active: user.is_active
+        }
+    };
 };

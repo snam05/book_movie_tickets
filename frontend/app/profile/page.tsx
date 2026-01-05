@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { 
     User, Mail, CreditCard, Hash, 
-    Pencil, Save, X, Lock 
+    Pencil, Save, X, Lock, Calendar, Phone
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL + '/auth';
@@ -30,7 +30,8 @@ export default function ProfilePage() {
     // Form tạm thời để lưu giá trị khi đang sửa
     const [formData, setFormData] = useState({
         full_name: '',
-        cccd_number: ''
+        cccd_number: '',
+        phone_number: ''
     });
 
     // Password change dialog states
@@ -60,7 +61,8 @@ export default function ProfilePage() {
                     setUser(userData);
                     setFormData({
                         full_name: userData.full_name || '',
-                        cccd_number: userData.cccd_number || ''
+                        cccd_number: userData.cccd_number || '',
+                        phone_number: userData.phone_number || ''
                     });
                 }
             } catch (error) {
@@ -75,6 +77,37 @@ export default function ProfilePage() {
 
     // 2. Logic xử lý lưu thay đổi
     const handleSave = async () => {
+        // Validation
+        // Validate CCCD: bắt buộc và đủ 12 số
+        if (!formData.cccd_number || formData.cccd_number.trim() === '') {
+            setProfileErrorDialog({ 
+                open: true, 
+                message: 'Số CCCD là bắt buộc, không được để trống' 
+            });
+            return;
+        }
+
+        const cccdRegex = /^\d{12}$/;
+        if (!cccdRegex.test(formData.cccd_number)) {
+            setProfileErrorDialog({ 
+                open: true, 
+                message: 'Số CCCD phải đủ 12 chữ số' 
+            });
+            return;
+        }
+
+        // Validate phone number: 10 số, bắt đầu với 0
+        if (formData.phone_number) {
+            const phoneRegex = /^0\d{9}$/;
+            if (!phoneRegex.test(formData.phone_number)) {
+                setProfileErrorDialog({ 
+                    open: true, 
+                    message: 'Số điện thoại phải là 10 số và bắt đầu bằng 0 (ví dụ: 0912345678)' 
+                });
+                return;
+            }
+        }
+
         try {
             const res = await axios.put(`${API_URL}/update-profile`, formData, {
                 withCredentials: true
@@ -210,7 +243,8 @@ export default function ProfilePage() {
                                         // Reset lại form về dữ liệu cũ nếu hủy sửa
                                         setFormData({
                                             full_name: user.full_name,
-                                            cccd_number: user.cccd_number || ''
+                                            cccd_number: user.cccd_number || '',
+                                            phone_number: user.phone_number || ''
                                         });
                                     }} 
                                     variant="destructive" 
@@ -263,18 +297,47 @@ export default function ProfilePage() {
                         />
 
                         <InfoSection 
+                            icon={<Phone className="text-red-600" />} 
+                            label="Số điện thoại" 
+                            isEditing={isEditing}
+                            value={user?.phone_number || "Chưa cập nhật"}
+                        >
+                            <div className="space-y-2">
+                                <Input 
+                                    value={formData.phone_number} 
+                                    onChange={(e) => setFormData({...formData, phone_number: e.target.value})}
+                                    className="border-red-200 focus-visible:ring-red-500"
+                                    placeholder="Nhập 10 số (ví dụ: 0912345678)"
+                                    maxLength={10}
+                                />
+                                <p className="text-xs text-gray-500">* Phải là 10 số bắt đầu bằng 0</p>
+                            </div>
+                        </InfoSection>
+
+                        <InfoSection 
                             icon={<CreditCard className="text-red-600" />} 
                             label="Số CCCD / Định danh" 
                             isEditing={isEditing}
                             value={user?.cccd_number || "Chưa cập nhật"}
                         >
-                            <Input 
-                                value={formData.cccd_number} 
-                                onChange={(e) => setFormData({...formData, cccd_number: e.target.value})}
-                                className="border-red-200 focus-visible:ring-red-500"
-                                placeholder="Nhập 12 số CCCD"
-                            />
+                            <div className="space-y-2">
+                                <Input 
+                                    value={formData.cccd_number} 
+                                    onChange={(e) => setFormData({...formData, cccd_number: e.target.value})}
+                                    className="border-red-200 focus-visible:ring-red-500"
+                                    placeholder="Nhập 12 số CCCD"
+                                    maxLength={12}
+                                />
+                                <p className="text-xs text-gray-500">* Phải đủ 12 chữ số</p>
+                            </div>
                         </InfoSection>
+
+                        <InfoSection 
+                            icon={<Calendar className="text-red-600" />} 
+                            label="Ngày sinh" 
+                            isEditing={false}
+                            value={user?.date_of_birth ? new Date(user.date_of_birth).toLocaleDateString('vi-VN') : "Chưa cập nhật"}
+                        />
 
                         <InfoSection 
                             icon={<Hash className="text-red-600" />} 

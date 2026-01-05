@@ -166,12 +166,12 @@ export const getUserStats = async (req, res) => {
  */
 export const createUser = async (req, res) => {
     try {
-        const { email, password, full_name, phone_number, cccd_number, date_of_birth, gender, role } = req.body;
+        const { email, password, full_name, phone_number, cccd_number, date_of_birth, gender, role, is_active } = req.body;
         
         // Validate required fields
-        if (!email || !password || !full_name || !cccd_number) {
+        if (!email || !password || !full_name || !cccd_number || !date_of_birth) {
             return res.status(400).json({
-                message: 'Thiếu thông tin bắt buộc: email, password, full_name, cccd_number'
+                message: 'Vui lòng điền đầy đủ thông tin bắt buộc'
             });
         }
         
@@ -208,8 +208,12 @@ export const createUser = async (req, res) => {
         });
     } catch (error) {
         console.error('Error in createUser:', error);
-        if (error.message === 'Email đã được sử dụng' || error.message === 'Số CCCD đã được sử dụng') {
+        if (error.message.includes('đã được sử dụng')) {
             return res.status(409).json({
+                message: error.message
+            });
+        } else if (error.message.includes('bắt buộc')) {
+            return res.status(400).json({
                 message: error.message
             });
         } else {
@@ -252,8 +256,12 @@ export const updateUser = async (req, res) => {
             return res.status(404).json({
                 message: error.message
             });
-        } else if (error.message === 'Email đã được sử dụng' || error.message === 'Số CCCD đã được sử dụng') {
+        } else if (error.message.includes('đã được sử dụng')) {
             return res.status(409).json({
+                message: error.message
+            });
+        } else if (error.message.includes('bắt buộc')) {
+            return res.status(400).json({
                 message: error.message
             });
         } else {
@@ -300,6 +308,43 @@ export const setUserPassword = async (req, res) => {
         } else {
             return res.status(500).json({
                 message: 'Lỗi khi đặt mật khẩu mới',
+                error: error.message
+            });
+        }
+    }
+};
+
+/**
+ * Kích hoạt/Vô hiệu hóa tài khoản (Admin only)
+ * PATCH /api/v1/admin/users/:id/status
+ */
+export const toggleUserStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { is_active } = req.body;
+        
+        if (typeof is_active !== 'boolean') {
+            return res.status(400).json({
+                message: 'Thiếu hoặc sai định dạng trường is_active (phải là boolean)'
+            });
+        }
+        
+        const result = await adminUserService.toggleUserStatus(parseInt(id), is_active, req.user.id);
+        
+        res.status(200).json(result);
+    } catch (error) {
+        console.error('Error in toggleUserStatus:', error);
+        if (error.message === 'Không tìm thấy người dùng') {
+            return res.status(404).json({
+                message: error.message
+            });
+        } else if (error.message === 'Không thể vô hiệu hóa tài khoản của chính bạn') {
+            return res.status(400).json({
+                message: error.message
+            });
+        } else {
+            return res.status(500).json({
+                message: 'Lỗi khi thay đổi trạng thái tài khoản',
                 error: error.message
             });
         }

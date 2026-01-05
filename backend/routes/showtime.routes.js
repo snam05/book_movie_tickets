@@ -1,6 +1,6 @@
 // routes/showtime.routes.js
 import express from 'express';
-import { getShowtimes, getShowtime, createShowtimeHandler, updateShowtimeHandler, deleteShowtimeHandler } from '../controllers/showtime.controller.js';
+import { getShowtimes, getShowtime, createShowtimeHandler, updateShowtimeHandler, deleteShowtimeHandler, cancelShowtimeHandler } from '../controllers/showtime.controller.js';
 import { verifyToken, isAdmin } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
@@ -39,5 +39,12 @@ router.put('/:id', verifyToken, isAdmin, updateShowtimeHandler);
  * @access  Admin only
  */
 router.delete('/:id', verifyToken, isAdmin, deleteShowtimeHandler);
+
+/**
+ * @route   PATCH /api/v1/admin/showtimes/:id/cancel
+ * @desc    Hủy lịch chiếu (đánh dấu là cancelled, gửi thông báo cho người mua vé)
+ * @access  Admin only
+ */
+router.patch('/:id/cancel', verifyToken, isAdmin, cancelShowtimeHandler);
 
 export default router;

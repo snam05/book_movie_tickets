@@ -1,5 +1,5 @@
 // controllers/showtime.controller.js
-import { getAllShowtimes, getShowtimeById, createShowtime, updateShowtime, deleteShowtime } from '../services/showtime.service.js';
+import { getAllShowtimes, getShowtimeById, createShowtime, updateShowtime, deleteShowtime, cancelShowtime } from '../services/showtime.service.js';
 
 /**
  * Lấy danh sách tất cả suất chiếu
@@ -149,6 +149,31 @@ export const deleteShowtimeHandler = async (req, res) => {
         } else {
             res.status(500).json({
                 message: 'Lỗi khi xóa lịch chiếu',
+                error: error.message
+            });
+        }
+    }
+};
+
+/**
+ * Hủy lịch chiếu (đánh dấu là cancelled)
+ * PATCH /api/v1/admin/showtimes/:id/cancel
+ */
+export const cancelShowtimeHandler = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await cancelShowtime(id);
+
+        res.status(200).json(result);
+    } catch (error) {
+        console.error('Error in cancelShowtime:', error);
+        if (error.message === 'Không tìm thấy lịch chiếu') {
+            res.status(404).json({
+                message: error.message
+            });
+        } else {
+            res.status(500).json({
+                message: 'Lỗi khi hủy lịch chiếu',
                 error: error.message
             });
         }

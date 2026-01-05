@@ -452,7 +452,7 @@ export default function AdminNewsPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Title */}
             <div className="space-y-2">
-              <Label htmlFor="title">Tiêu Đề *</Label>
+              <Label htmlFor="title">Tiêu Đề <span className="text-red-600">*</span></Label>
               <Input
                 id="title"
                 value={formData.title}
@@ -463,7 +463,7 @@ export default function AdminNewsPage() {
 
             {/* Summary */}
             <div className="space-y-2">
-              <Label htmlFor="summary">Tóm Tắt *</Label>
+              <Label htmlFor="summary">Tóm Tắt <span className="text-red-600">*</span></Label>
               <Textarea
                 id="summary"
                 value={formData.summary}
@@ -475,7 +475,7 @@ export default function AdminNewsPage() {
 
             {/* Content */}
             <div className="space-y-2">
-              <Label htmlFor="content">Nội Dung *</Label>
+              <Label htmlFor="content">Nội Dung <span className="text-red-600">*</span></Label>
               <Textarea
                 id="content"
                 value={formData.content}
@@ -487,7 +487,7 @@ export default function AdminNewsPage() {
 
             {/* Category */}
             <div className="space-y-2">
-              <Label htmlFor="category">Danh Mục *</Label>
+              <Label htmlFor="category">Danh Mục <span className="text-red-600">*</span></Label>
               <Select
                 value={formData.category}
                 onValueChange={(value) => setFormData({ ...formData, category: value })}

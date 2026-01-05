@@ -26,7 +26,8 @@ export function SignUpForm({ className, onSignUpSuccess, ...props }: SignUpFormP
         full_name: '',
         email: '',
         matKhau: '', 
-        cccd_number: '', 
+        cccd_number: '',
+        date_of_birth: '',
     });
     const [confirmPassword, setConfirmPassword] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
@@ -51,6 +52,27 @@ export function SignUpForm({ className, onSignUpSuccess, ...props }: SignUpFormP
         const cccdRegex = /^\d{12}$/;
         if (!cccdRegex.test(formData.cccd_number)) {
             return "Số CCCD phải là 12 chữ số.";
+        }
+
+        // Kiểm tra ngày sinh: bắt buộc phải điền
+        if (!formData.date_of_birth) {
+            return "Ngày tháng năm sinh là bắt buộc.";
+        }
+
+        // Kiểm tra tuổi: phải từ 13 tuổi trở lên
+        const birthDate = new Date(formData.date_of_birth);
+        const today = new Date();
+        const age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        const dayDiff = today.getDate() - birthDate.getDate();
+        
+        let calculatedAge = age;
+        if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+            calculatedAge--;
+        }
+
+        if (calculatedAge < 13) {
+            return "Bạn phải từ 13 tuổi trở lên để đăng ký.";
         }
 
         // Kiểm tra mật khẩu: ít nhất 8 ký tự, có chữ hoa, thường, số, ký tự đặc biệt
@@ -120,7 +142,7 @@ export function SignUpForm({ className, onSignUpSuccess, ...props }: SignUpFormP
                             </div>
 
                             {error && (
-                                <div className="p-3 text-xs font-medium text-red-600 bg-red-50 border border-red-100 rounded-md">
+                                <div className="p-3 text-sm font-medium text-red-600 bg-red-50 border border-red-100 rounded-md">
                                     {error}
                                 </div>
                             )}
@@ -148,6 +170,20 @@ export function SignUpForm({ className, onSignUpSuccess, ...props }: SignUpFormP
                                     value={formData.email}
                                     onChange={handleChange}
                                 />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="date_of_birth">Ngày tháng năm sinh</Label>
+                                <Input
+                                    id="date_of_birth"
+                                    name="date_of_birth"
+                                    type="date"
+                                    required
+                                    value={formData.date_of_birth}
+                                    onChange={handleChange}
+                                    max={new Date().toISOString().split('T')[0]}
+                                />
+                                <p className="text-xs text-gray-500">* Phải từ 13 tuổi trở lên</p>
                             </div>
 
                             <div className="grid gap-2">

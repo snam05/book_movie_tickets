@@ -3,7 +3,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Cookies from 'js-cookie';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -48,9 +47,10 @@ export function BookingSummary({
         setLoading(true);
         
         try {
-            const token = Cookies.get('token');
+            // Kiểm tra user đã đăng nhập bằng localStorage
+            const user = localStorage.getItem('user');
             
-            if (!token) {
+            if (!user) {
                 alert('Vui lòng đăng nhập để đặt vé');
                 router.push('/auth/signin');
                 return;
@@ -59,8 +59,7 @@ export function BookingSummary({
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/bookings`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Content-Type': 'application/json'
                 },
                 credentials: 'include',
                 body: JSON.stringify({

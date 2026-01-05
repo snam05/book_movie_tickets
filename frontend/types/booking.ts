@@ -24,6 +24,7 @@ export interface IBooking {
         showtime_time: string;
         price: number;
         available_seats: number;
+        status: 'normal' | 'canceled';
         movie: {
             id: number;
             title: string;

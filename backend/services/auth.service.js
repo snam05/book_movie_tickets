@@ -100,7 +100,12 @@ export const loginUser = async (email, matKhau, ipAddress, userAgent) => {
             throw new Error('Email hoặc Mật khẩu không đúng.'); 
         }
 
-        // B. So sánh mật khẩu
+        // B. Kiểm tra tài khoản có được kích hoạt không
+        if (!user.is_active) {
+            throw new Error('Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.');
+        }
+
+        // C. So sánh mật khẩu
         // So sánh mật khẩu thô (matKhau) với hash đã lưu trong DB (user.password_hash)
         const isMatch = await bcrypt.compare(matKhau, user.password_hash);
 
@@ -108,7 +113,7 @@ export const loginUser = async (email, matKhau, ipAddress, userAgent) => {
             throw new Error('Email hoặc Mật khẩu không đúng.');
         }
 
-        // C. Tạo Session trong database
+        // D. Tạo Session trong database
         const sessionData = await createSession(user.id, ipAddress, userAgent);
 
         return {

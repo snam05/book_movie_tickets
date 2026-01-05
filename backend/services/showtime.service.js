@@ -504,6 +504,69 @@ export const deleteShowtime = async (showtimeId) => {
 };
 
 /**
+ * Hủy lịch chiếu và gửi thông báo cho người mua vé
+ * @param {number} showtimeId - ID lịch chiếu
+ * @returns {Promise<Object>}
+ */
+export const cancelShowtime = async (showtimeId) => {
+    try {
+        const showtime = await Showtime.findByPk(showtimeId, {
+            attributes: ['id', 'movie_id', 'theater_id', 'showtime_date', 'showtime_time', 'price', 'status']
+        });
+
+        if (!showtime) {
+            throw new Error('Không tìm thấy lịch chiếu');
+        }
+
+        // Update status thành 'canceled'
+        showtime.status = 'canceled';
+        await showtime.save();
+
+        // Lấy danh sách các booking liên quan
+        const bookings = await Booking.findAll({
+            where: { showtime_id: showtimeId },
+            attributes: ['id', 'user_id'],
+            raw: true
+        });
+
+        // Import Activity service để ghi log thông báo
+        const { createActivity } = await import('./activity.service.js');
+
+        // Tạo thông báo cho mỗi user có booking
+        if (bookings.length > 0) {
+            for (const booking of bookings) {
+                try {
+                    await createActivity({
+                        user_id: booking.user_id,
+                        action: 'NOTIFICATION',
+                        resource: 'Showtime',
+                        resource_id: showtimeId,
+                        description: `Lịch chiếu phim đã bị hủy. Vui lòng liên hệ nhân viên để được hỗ trợ hoàn lại tiền.`,
+                        metadata: {
+                            booking_id: booking.id,
+                            showtime_date: showtime.showtime_date,
+                            showtime_time: showtime.showtime_time,
+                            notification_type: 'SHOWTIME_CANCELLED'
+                        }
+                    });
+                } catch (err) {
+                    console.error('Error creating notification for user:', booking.user_id, err);
+                    // Tiếp tục với booking tiếp theo nếu có lỗi
+                }
+            }
+        }
+
+        return { 
+            message: 'Đã hủy lịch chiếu thành công. Những khách hàng có booking sẽ nhận được thông báo.',
+            affected_bookings: bookings.length
+        };
+    } catch (error) {
+        console.error('Error cancelling showtime:', error);
+        throw error;
+    }
+};
+
+/**
  * Lấy số ghế trống động của suất chiếu
  * @param {number} showtimeId - ID suất chiếu
  * @returns {Promise<number>} Số ghế trống

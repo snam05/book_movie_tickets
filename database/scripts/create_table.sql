@@ -25,11 +25,13 @@ CREATE TABLE IF NOT EXISTS users (
     gender ENUM('male', 'female', 'other'),
     member_code VARCHAR(10) UNIQUE,
     role ENUM('customer', 'admin') NOT NULL DEFAULT 'customer',
+    is_active BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Trạng thái kích hoạt tài khoản',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_email (email),
     INDEX idx_cccd (cccd_number),
-    INDEX idx_member_code (member_code)
+    INDEX idx_member_code (member_code),
+    INDEX idx_is_active (is_active)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================

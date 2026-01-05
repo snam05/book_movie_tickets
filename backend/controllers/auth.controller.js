@@ -11,7 +11,8 @@ const handleErrorResponse = (res, error) => {
     // Nếu lỗi là do Validation hoặc Duplication (do Service ném ra), trả về 400 Bad Request
     if (error.message.includes('Thiếu trường bắt buộc') || 
         error.message.includes('tồn tại') ||
-        error.message.includes('không đúng')) {
+        error.message.includes('không đúng') ||
+        error.message.includes('vô hiệu hóa')) {
         return res.status(400).json({
             message: error.message
         });
@@ -190,6 +191,8 @@ export const updateProfile = async (req, res) => {
                 email: user.email,
                 full_name: user.full_name,
                 cccd_number: user.cccd_number,
+                phone_number: user.phone_number,
+                date_of_birth: user.date_of_birth,
                 member_code: user.member_code,
                 role: user.role
             }

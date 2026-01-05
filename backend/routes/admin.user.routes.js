@@ -27,6 +27,9 @@ router.put('/:id', adminUserController.updateUser);
 // PATCH /api/v1/admin/users/:id/role - Cập nhật role
 router.patch('/:id/role', adminUserController.updateUserRole);
 
+// PATCH /api/v1/admin/users/:id/status - Kích hoạt/Vô hiệu hóa tài khoản
+router.patch('/:id/status', adminUserController.toggleUserStatus);
+
 // POST /api/v1/admin/users/:id/password - Đặt mật khẩu mới
 router.post('/:id/password', adminUserController.setUserPassword);
 

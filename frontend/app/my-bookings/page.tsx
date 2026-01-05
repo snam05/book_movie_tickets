@@ -48,6 +48,7 @@ export default function MyBookingsPage() {
         try {
             setLoading(true);
             const data = await getMyBookings();
+            console.log('Bookings data:', data); // Debug
             setBookings(data);
         } catch (error) {
             console.error('Error fetching bookings:', error);
@@ -180,11 +181,7 @@ export default function MyBookingsPage() {
                                                             <Badge variant="outline" className="text-xs">
                                                                 {booking.showtime.theater.theater_type.toUpperCase()}
                                                             </Badge>
-                                                            {booking.showtime.theater.status === 'maintenance' && (
-                                                                <Badge className="bg-orange-100 text-orange-800 border-orange-300 text-xs">
-                                                                    Bảo trì
-                                                                </Badge>
-                                                            )}
+                                                        
                                                         </div>
                                                     </div>
                                                 </div>
@@ -207,7 +204,7 @@ export default function MyBookingsPage() {
                                             </div>
 
                                             {/* Theater Maintenance Warning */}
-                                            {booking.showtime.theater.status === 'maintenance' && (
+                                            {booking.showtime.theater.status === 'maintenance' && booking.booking_status === 'confirmed' && (
                                                 <div className="mb-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
                                                     <div className="flex items-start gap-3">
                                                         <AlertTriangle className="h-5 w-5 text-orange-600 flex-shrink-0 mt-0.5" />
@@ -217,6 +214,23 @@ export default function MyBookingsPage() {
                                                             </p>
                                                             <p className="text-sm text-orange-800">
                                                                 Rạp chiếu đang trong quá trình bảo trì. Vui lòng liên hệ nhân viên để được hỗ trợ về vé đã đặt.
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Showtime Cancelled Warning */}
+                                            {booking.showtime.status === 'canceled' && (booking.booking_status === 'confirmed' || booking.booking_status === 'completed') && (
+                                                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                                                    <div className="flex items-start gap-3">
+                                                        <AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                                                        <div>
+                                                            <p className="font-semibold text-red-900 mb-1">
+                                                                Lịch chiếu đã bị hủy
+                                                            </p>
+                                                            <p className="text-sm text-red-800">
+                                                                Lịch chiếu phim này đã bị hủy. Vui lòng liên hệ nhân viên để được hỗ trợ về vé đã đặt.
                                                             </p>
                                                         </div>
                                                     </div>

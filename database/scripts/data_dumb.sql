@@ -11,18 +11,18 @@ USE book_movie_tickets;
 -- 1. INSERT DATA: USERS (Người dùng)
 -- =============================================
 
-INSERT INTO users (email, password_hash, full_name, cccd_number, date_of_birth, gender, member_code, role) VALUES
+INSERT INTO users (email, password_hash, full_name, cccd_number, date_of_birth, gender, member_code, role, is_active) VALUES
 -- Admin accounts
-('ad@abc.com', '$2b$10$QTU/xrmH0hbcV0AHQ9804u7fFvyGAyTgYlDX4GZtQmg4AlwpHHqf6', 'Nguyễn Văn Admin', '001234567890', '1990-01-15', 'male', 'ADM001', 'admin'),
-('manager@bookmovie.vn', '$2b$10$abcdefghijklmnopqrstuvwxyz123457', 'Trần Thị Quản Lý', '001234567891', '1992-05-20', 'female', 'ADM002', 'admin'),
-('nguyenvana@gmail.com', '$2b$10$hashedpassword1', 'Nguyễn Văn A', '001234567892', '1995-03-12', 'male', 'MEM001', 'customer'),
-('tranthib@gmail.com', '$2b$10$hashedpassword2', 'Trần Thị B', '001234567893', '1998-07-25', 'female', 'MEM002', 'customer'),
-('levanc@gmail.com', '$2b$10$hashedpassword3', 'Lê Văn C', '001234567894', '1997-11-08', 'male', 'MEM003', 'customer'),
-('phamthid@gmail.com', '$2b$10$hashedpassword4', 'Phạm Thị D', '001234567895', '1999-02-14', 'female', 'MEM004', 'customer'),
-('hoangvane@gmail.com', '$2b$10$hashedpassword5', 'Hoàng Văn E', '001234567896', '1996-09-30', 'male', 'MEM005', 'customer'),
-('vothif@gmail.com', '$2b$10$hashedpassword6', 'Võ Thị F', '001234567897', '2000-04-18', 'female', 'MEM006', 'customer'),
-('dovanh@gmail.com', '$2b$10$hashedpassword7', 'Đỗ Văn H', '001234567898', '1994-12-05', 'male', 'MEM007', 'customer'),
-('buithik@gmail.com', '$2b$10$hashedpassword8', 'Bùi Thị K', '001234567899', '2001-06-22', 'female', 'MEM008', 'customer');
+('ad@abc.com', '$2b$10$QTU/xrmH0hbcV0AHQ9804u7fFvyGAyTgYlDX4GZtQmg4AlwpHHqf6', 'Nguyễn Văn Admin', '001234567890', '1990-01-15', 'male', 'ADM001', 'admin', TRUE),
+('manager@bookmovie.vn', '$2b$10$abcdefghijklmnopqrstuvwxyz123457', 'Trần Thị Quản Lý', '001234567891', '1992-05-20', 'female', 'ADM002', 'admin', TRUE),
+('nguyenvana@gmail.com', '$2b$10$hashedpassword1', 'Nguyễn Văn A', '001234567892', '1995-03-12', 'male', 'MEM001', 'customer', TRUE),
+('tranthib@gmail.com', '$2b$10$hashedpassword2', 'Trần Thị B', '001234567893', '1998-07-25', 'female', 'MEM002', 'customer', TRUE),
+('levanc@gmail.com', '$2b$10$hashedpassword3', 'Lê Văn C', '001234567894', '1997-11-08', 'male', 'MEM003', 'customer', TRUE),
+('phamthid@gmail.com', '$2b$10$hashedpassword4', 'Phạm Thị D', '001234567895', '1999-02-14', 'female', 'MEM004', 'customer', TRUE),
+('hoangvane@gmail.com', '$2b$10$hashedpassword5', 'Hoàng Văn E', '001234567896', '1996-09-30', 'male', 'MEM005', 'customer', TRUE),
+('vothif@gmail.com', '$2b$10$hashedpassword6', 'Võ Thị F', '001234567897', '2000-04-18', 'female', 'MEM006', 'customer', TRUE),
+('dovanh@gmail.com', '$2b$10$hashedpassword7', 'Đỗ Văn H', '001234567898', '1994-12-05', 'male', 'MEM007', 'customer', TRUE),
+('buithik@gmail.com', '$2b$10$hashedpassword8', 'Bùi Thị K', '001234567899', '2001-06-22', 'female', 'MEM008', 'customer', TRUE);
 
 -- =============================================
 -- 2. INSERT DATA: GENRES (Thể loại phim)

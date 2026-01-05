@@ -11,6 +11,7 @@ import {
   createUser,
   updateUser,
   setUserPassword,
+  toggleUserStatus,
   CreateUserData,
   UpdateUserData
 } from '@/lib/api/users';
@@ -80,7 +81,8 @@ export default function AdminUsersPage() {
     phone_number: '',
     date_of_birth: '',
     gender: '',
-    role: 'customer'
+    role: 'customer',
+    is_active: true
   });
 
   const [editForm, setEditForm] = useState<UpdateUserData>({
@@ -89,7 +91,8 @@ export default function AdminUsersPage() {
     phone_number: '',
     cccd_number: '',
     date_of_birth: '',
-    gender: ''
+    gender: '',
+    is_active: true
   });
 
   const [newPassword, setNewPassword] = useState('');
@@ -204,7 +207,8 @@ export default function AdminUsersPage() {
       phone_number: '',
       date_of_birth: '',
       gender: '',
-      role: 'customer'
+      role: 'customer',
+      is_active: true
     });
     setCreateDialogOpen(true);
   };
@@ -248,7 +252,8 @@ export default function AdminUsersPage() {
       phone_number: user.phone_number || '',
       cccd_number: user.cccd_number,
       date_of_birth: user.date_of_birth || '',
-      gender: user.gender || ''
+      gender: user.gender || '',
+      is_active: user.is_active
     });
     setEditDialogOpen(true);
   };
@@ -719,7 +724,7 @@ export default function AdminUsersPage() {
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="create-email">Email *</Label>
+                <Label htmlFor="create-email">Email <span className="text-red-600">*</span></Label>
                 <Input
                   id="create-email"
                   type="email"
@@ -729,7 +734,7 @@ export default function AdminUsersPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="create-password">Mật khẩu *</Label>
+                <Label htmlFor="create-password">Mật khẩu <span className="text-red-600">*</span></Label>
                 <Input
                   id="create-password"
                   type="password"
@@ -740,7 +745,7 @@ export default function AdminUsersPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="create-fullname">Họ và tên *</Label>
+              <Label htmlFor="create-fullname">Họ và tên <span className="text-red-600">*</span></Label>
               <Input
                 id="create-fullname"
                 value={createForm.full_name}
@@ -750,7 +755,7 @@ export default function AdminUsersPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="create-cccd">Số CCCD *</Label>
+                <Label htmlFor="create-cccd">Số CCCD <span className="text-red-600">*</span></Label>
                 <Input
                   id="create-cccd"
                   value={createForm.cccd_number}
@@ -770,12 +775,14 @@ export default function AdminUsersPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="create-dob">Ngày sinh</Label>
+                <Label htmlFor="create-dob">Ngày sinh <span className="text-red-600">*</span></Label>
                 <Input
                   id="create-dob"
                   type="date"
                   value={createForm.date_of_birth}
                   onChange={(e) => setCreateForm({ ...createForm, date_of_birth: e.target.value })}
+                  required
+                  max={new Date().toISOString().split('T')[0]}
                 />
               </div>
               <div className="space-y-2">
@@ -810,6 +817,18 @@ export default function AdminUsersPage() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="flex items-center space-x-2 p-4 border rounded-lg">
+              <input
+                type="checkbox"
+                id="create-is-active"
+                checked={createForm.is_active}
+                onChange={(e) => setCreateForm({ ...createForm, is_active: e.target.checked })}
+                className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+              />
+              <Label htmlFor="create-is-active" className="cursor-pointer font-normal">
+                Kích hoạt tài khoản ngay khi tạo
+              </Label>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
@@ -833,7 +852,7 @@ export default function AdminUsersPage() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-email">Email *</Label>
+              <Label htmlFor="edit-email">Email <span className="text-red-600">*</span></Label>
               <Input
                 id="edit-email"
                 type="email"
@@ -842,7 +861,7 @@ export default function AdminUsersPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-fullname">Họ và tên *</Label>
+              <Label htmlFor="edit-fullname">Họ và tên <span className="text-red-600">*</span></Label>
               <Input
                 id="edit-fullname"
                 value={editForm.full_name}
@@ -851,7 +870,7 @@ export default function AdminUsersPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-cccd">Số CCCD *</Label>
+                <Label htmlFor="edit-cccd">Số CCCD <span className="text-red-600">*</span></Label>
                 <Input
                   id="edit-cccd"
                   value={editForm.cccd_number}
@@ -869,12 +888,14 @@ export default function AdminUsersPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-dob">Ngày sinh</Label>
+                <Label htmlFor="edit-dob">Ngày sinh <span className="text-red-600">*</span></Label>
                 <Input
                   id="edit-dob"
                   type="date"
                   value={editForm.date_of_birth}
                   onChange={(e) => setEditForm({ ...editForm, date_of_birth: e.target.value })}
+                  required
+                  max={new Date().toISOString().split('T')[0]}
                 />
               </div>
               <div className="space-y-2">
@@ -893,6 +914,25 @@ export default function AdminUsersPage() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            <div className="flex items-center space-x-2 p-4 border rounded-lg">
+              <input
+                type="checkbox"
+                id="edit-is-active"
+                checked={editForm.is_active}
+                onChange={(e) => setEditForm({ ...editForm, is_active: e.target.checked })}
+                disabled={userToEdit?.id === currentUserId}
+                className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+              <Label 
+                htmlFor="edit-is-active" 
+                className={`font-normal ${userToEdit?.id === currentUserId ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+              >
+                Tài khoản được kích hoạt
+                {userToEdit?.id === currentUserId && (
+                  <span className="text-xs text-gray-500 ml-2">(Không thể tự vô hiệu hóa tài khoản của mình)</span>
+                )}
+              </Label>
             </div>
           </div>
           <DialogFooter>

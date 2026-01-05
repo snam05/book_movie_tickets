@@ -28,6 +28,7 @@ export interface IRegisterForm {
     email: string;
     matKhau: string;
     cccd_number: string;
+    date_of_birth: string;
 }
 
 export interface IAPIResponse {

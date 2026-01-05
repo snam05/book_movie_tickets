@@ -14,6 +14,7 @@ export interface User {
   gender?: string;
   member_code: string;
   role: 'customer' | 'admin';
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -111,6 +112,7 @@ export interface CreateUserData {
   date_of_birth?: string;
   gender?: string;
   role?: 'customer' | 'admin';
+  is_active?: boolean;
 }
 
 /**
@@ -135,6 +137,7 @@ export interface UpdateUserData {
   cccd_number?: string;
   date_of_birth?: string;
   gender?: string;
+  is_active?: boolean;
 }
 
 /**
@@ -162,6 +165,20 @@ export const setUserPassword = async (id: number, password: string): Promise<voi
     });
   } catch (error) {
     console.error('Error setting user password:', error);
+    throw error;
+  }
+};
+
+/**
+ * Kích hoạt/Vô hiệu hóa tài khoản user (Admin only)
+ */
+export const toggleUserStatus = async (id: number, is_active: boolean): Promise<void> => {
+  try {
+    await axios.patch(`${API_URL}/admin/users/${id}/status`, { is_active }, {
+      withCredentials: true
+    });
+  } catch (error) {
+    console.error('Error toggling user status:', error);
     throw error;
   }
 };

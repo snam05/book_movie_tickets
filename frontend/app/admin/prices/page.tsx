@@ -370,7 +370,7 @@ export default function AdminPricesPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Seat Type */}
             <div className="space-y-2">
-              <Label htmlFor="seatType">Loại Ghế *</Label>
+              <Label htmlFor="seatType">Loại Ghế <span className="text-red-600">*</span></Label>
               <Select
                 value={formData.seatType}
                 onValueChange={handleSeatTypeChange}
@@ -391,7 +391,7 @@ export default function AdminPricesPage() {
 
             {/* Price */}
             <div className="space-y-2">
-              <Label htmlFor="price">Giá Tiền (VND) *</Label>
+              <Label htmlFor="price">Giá Tiền (VND) <span className="text-red-600">*</span></Label>
               <Input
                 id="price"
                 type="number"

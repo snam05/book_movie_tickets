@@ -193,7 +193,7 @@ export default function AdminPricesPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">Quản lý Giá Vé</h1>
